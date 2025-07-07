@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Debug Computer Peripherals - Service Quotation Generator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase/2.39.0/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
     * {
@@ -137,18 +137,17 @@
   <div class="container">
     <h1>Debug Computer Peripherals</h1>
     
-    <!-- Supabase Configuration Section -->
     <div class="config-section" style="display: none;">
       <h3 class="toggle-section" onclick="toggleConfig()">⚙️ Supabase Configuration (Click to expand)</h3>
       <div id="configContent" style="display: none;">
         <label>Supabase URL</label>
-        <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co">
+        <input type="text" id="supabaseUrl" placeholder="https://gsnsdatsrrqhfqznyhet.supabase.co">
         
         <label>Supabase Anon Key</label>
-        <input type="text" id="supabaseKey" placeholder="Your anon key">
+        <input type="text" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzbnNkYXRzcnJxaGZxem55aGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NzgyMzcsImV4cCI6MjA2NzQ1NDIzN30.cziUq0KItB8XshLneFlGQ0DSc_jE-icCuyoWt-BY5Og">
         
         <button onclick="initializeSupabase()">Connect to Supabase</button>
-        <button onclick="createTable()">Create Quotations Table</button>
+        <button onclick="createTable()">Show Create Table SQL</button>
         
         <div id="statusMessage" class="status-message" style="display: none;"></div>
       </div>
@@ -200,7 +199,6 @@
       <button onclick="saveToSupabase()" id="saveBtn">Save to Database</button>
     </div>
 
-    <!-- Quotation History Section -->
     <div class="quotation-history" style="display: none;" id="historySection">
       <h3 class="toggle-section" onclick="toggleHistory()">📋 Quotation History (Click to expand)</h3>
       <div id="historyContent" style="display: none;">
@@ -211,10 +209,11 @@
   </div>
 
   <script>
-    // Environment variables for Vercel deployment
+    // --- IMPORTANT ---
+    // You MUST enter your actual Supabase credentials here for the database to work.
     window.ENV = {
-      SUPABASE_URL: 'https://your-project-id.supabase.co',
-      SUPABASE_ANON_KEY: 'your-anon-key-here'
+      SUPABASE_URL: 'https://gsnsdatsrrqhfqznyhet.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzbnNkYXRzcnJxaGZxem55aGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NzgyMzcsImV4cCI6MjA2NzQ1NDIzN30.cziUq0KItB8XshLneFlGQ0DSc_jE-icCuyoWt-BY5Og'
     };
 
     let supabaseClient = null;
@@ -236,8 +235,8 @@
     });
 
     select.addEventListener("change", function() {
-      const selectedIndex = parseInt(this.value);
-      if (!isNaN(selectedIndex)) {
+      const selectedIndex = this.value;
+      if (selectedIndex) {
         const selected = products[selectedIndex];
         document.getElementById("serviceDesc").value = selected.desc;
         document.getElementById("amount").value = selected.price;
@@ -247,12 +246,6 @@
       }
     });
 
-    // Toggle configuration section
-    function toggleConfig() {
-      const content = document.getElementById('configContent');
-      content.style.display = content.style.display === 'none' ? 'block' : 'none';
-    }
-
     // Toggle history section
     function toggleHistory() {
       const content = document.getElementById('historyContent');
@@ -261,110 +254,58 @@
 
     // Show status message
     function showStatus(message, type = 'success') {
-      const statusElement = document.getElementById('statusMessage');
-      statusElement.textContent = message;
-      statusElement.className = `status-message ${type}`;
-      statusElement.style.display = 'block';
-      
-      setTimeout(() => {
-        statusElement.style.display = 'none';
-      }, 5000);
+      // Since the config section is hidden, we can log to console instead
+      console.log(`[${type.toUpperCase()}] ${message}`);
     }
 
-    // Auto-initialize Supabase (for Vercel deployment)
-    function initializeSupabaseAuto(url, key) {
+    // Correctly initialize Supabase client
+    function initializeSupabaseInternal(url, key) {
+      // Check for placeholder values
+      if (!url || url.includes('your-project-id')) {
+        console.error("Supabase URL is not set. Please update it in the script.");
+        return;
+      }
       try {
-        supabaseClient = supabase.createClient(url, key);
-        console.log('Connected to Supabase automatically');
-        document.getElementById('historySection').style.display = 'block';
-        
-        // Test the connection
+        const { createClient } = supabase; 
+        supabaseClient = createClient(url, key);
+        console.log('Attempting to connect to Supabase...');
         testSupabaseConnection();
       } catch (error) {
-        console.error('Error connecting to Supabase:', error.message);
+        console.error('Error initializing Supabase client:', error.message);
       }
     }
 
     // Test Supabase connection
     async function testSupabaseConnection() {
+      if (!supabaseClient) return;
       try {
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
           .from('quotations')
-          .select('count')
+          .select('id')
           .limit(1);
         
-        if (error && error.code === 'PGRST116') {
-          console.log('Quotations table not found - you may need to create it');
+        if (error && error.code === '42P01') {
+            console.warn('Supabase connected, but "quotations" table not found.');
         } else if (error) {
-          console.error('Database connection error:', error.message);
+           throw error;
         } else {
-          console.log('Database connected successfully');
+            console.log('Database connected successfully.');
+            document.getElementById('historySection').style.display = 'block';
         }
       } catch (error) {
-        console.error('Connection test failed:', error.message);
-      }
-    }
-
-    // Create quotations table
-    async function createTable() {
-      if (!supabaseClient) {
-        showStatus('Please connect to Supabase first', 'error');
-        return;
-      }
-
-      try {
-        // Note: This will create the table structure via SQL
-        // You should run this SQL in your Supabase dashboard instead:
-        const tableSQL = `
-          CREATE TABLE IF NOT EXISTS quotations (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            quotation_number TEXT NOT NULL,
-            client_name TEXT NOT NULL,
-            client_address TEXT NOT NULL,
-            service_description TEXT NOT NULL,
-            amount DECIMAL(10,2) NOT NULL,
-            service_date DATE NOT NULL,
-            start_time TIME NOT NULL,
-            end_time TIME NOT NULL,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-          );
-        `;
-        
-        showStatus('Please run the following SQL in your Supabase dashboard:\n\n' + tableSQL, 'warning');
-        
-        // Copy SQL to clipboard if available
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(tableSQL);
-          showStatus('SQL copied to clipboard! Run it in your Supabase dashboard.', 'warning');
-        }
-      } catch (error) {
-        showStatus('Error: ' + error.message, 'error');
+        console.error('Database connection error:', error.message);
       }
     }
 
     // Auto-initialize Supabase on page load
     window.addEventListener('load', function() {
-      // Try to get credentials from environment variables (Vercel)
-      const supabaseUrl = window.ENV?.SUPABASE_URL || 'https://gsnsdatsrrqhfqznyhet.supabase.co';
-      const supabaseKey = window.ENV?.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzbnNkYXRzcnJxaGZxem55aGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NzgyMzcsImV4cCI6MjA2NzQ1NDIzN30.cziUq0KItB8XshLneFlGQ0DSc_jE-icCuyoWt-BY5Og';
+      const supabaseUrl = window.ENV?.SUPABASE_URL;
+      const supabaseKey = window.ENV?.SUPABASE_ANON_KEY;
       
-      if (supabaseUrl && supabaseKey && 
-          supabaseUrl !== 'https://gsnsdatsrrqhfqznyhet.supabase.co' && 
-          supabaseKey !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzbnNkYXRzcnJxaGZxem55aGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NzgyMzcsImV4cCI6MjA2NzQ1NDIzN30.cziUq0KItB8XshLneFlGQ0DSc_jE-icCuyoWt-BY5Og') {
-        
-        document.getElementById('supabaseUrl').value = supabaseUrl;
-        document.getElementById('supabaseKey').value = supabaseKey;
-        initializeSupabaseAuto(supabaseUrl, supabaseKey);
+      if (supabaseUrl && supabaseKey) {
+        initializeSupabaseInternal(supabaseUrl, supabaseKey);
       } else {
-        // Fallback to session storage for development
-        const savedUrl = sessionStorage.getItem('supabaseUrl');
-        const savedKey = sessionStorage.getItem('supabaseKey');
-        
-        if (savedUrl && savedKey) {
-          document.getElementById('supabaseUrl').value = savedUrl;
-          document.getElementById('supabaseKey').value = savedKey;
-          initializeSupabaseAuto(savedUrl, savedKey);
-        }
+          console.warn("Supabase credentials not found. Please set them in the window.ENV object.");
       }
     });
 
@@ -406,21 +347,21 @@
       document.getElementById('previewEnd').innerText = endTime;
       document.getElementById('invoicePreview').style.display = 'block';
 
-      // Enable/disable save button based on Supabase connection
       document.getElementById('saveBtn').disabled = !supabaseClient;
     });
 
     // Save quotation to Supabase
     async function saveToSupabase() {
       if (!supabaseClient || !currentQuotationData) {
-        showStatus('Please connect to Supabase and generate a quotation first', 'error');
+        alert('Cannot save. Supabase is not connected or no quotation has been generated.');
         return;
       }
 
-      try {
-        document.getElementById('saveBtn').disabled = true;
-        document.getElementById('saveBtn').textContent = 'Saving...';
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
 
+      try {
         const { data, error } = await supabaseClient
           .from('quotations')
           .insert([{
@@ -439,25 +380,25 @@
           throw error;
         }
 
-        showStatus('Quotation saved successfully!', 'success');
+        alert('Quotation saved successfully!');
         
-        // Reset form
         document.getElementById('invoiceForm').reset();
         document.getElementById('invoicePreview').style.display = 'none';
         currentQuotationData = null;
+        loadQuotations();
 
       } catch (error) {
-        showStatus('Error saving quotation: ' + error.message, 'error');
+        alert('Error saving quotation: ' + error.message);
+        console.error("Save to Supabase error:", error);
       } finally {
-        document.getElementById('saveBtn').disabled = false;
-        document.getElementById('saveBtn').textContent = 'Save to Database';
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save to Database';
       }
     }
 
     // Load quotations from Supabase
     async function loadQuotations() {
       if (!supabaseClient) {
-        showStatus('Please connect to Supabase first', 'error');
         return;
       }
 
@@ -495,34 +436,31 @@
         });
 
       } catch (error) {
-        showStatus('Error loading quotations: ' + error.message, 'error');
+        console.error("Load quotations error:", error);
+        alert('Error loading quotations: ' + error.message);
       }
     }
 
-    // PDF generation (existing function)
+    // PDF generation
     function downloadPDF() {
       if (!currentQuotationData) {
-        showStatus('No quotation data available', 'error');
+        alert('No quotation data available. Please generate one first.');
         return;
       }
 
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       
-      // Use currentQuotationData for PDF generation
       const { quotationNumber, clientName, clientAddress, serviceDesc, amount, invoiceDate, startTime, endTime } = currentQuotationData;
 
-      // Set colors
       const primaryColor = [46, 125, 50];
       const secondaryColor = [76, 175, 80];
       const textColor = [33, 33, 33];
       const lightGray = [240, 240, 240];
 
-      // Add header background
       doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.rect(0, 0, 210, 40, 'F');
 
-      // Company name and logo area
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(24);
       doc.setFont('helvetica', 'bold');
@@ -532,145 +470,110 @@
       doc.setFont('helvetica', 'normal');
       doc.text('Professional IT Solutions & Services', 20, 30);
 
-      // Add decorative line
       doc.setDrawColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
       doc.setLineWidth(2);
       doc.line(20, 45, 190, 45);
 
-      // Quotation title
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
       doc.text('SERVICE QUOTATION', 20, 60);
 
-      // Quotation number
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       doc.text('Quotation No: ' + quotationNumber, 20, 70);
-      doc.text('Date: ' + new Date().toLocaleDateString(), 20, 78);
+      doc.text('Date: ' + new Date().toLocaleDateString(), 140, 70);
 
-      // Client information box
       doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.rect(20, 90, 170, 40, 'F');
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(20, 90, 170, 40, 'S');
-
+      doc.rect(20, 80, 170, 30, 'F');
+      
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text('CLIENT INFORMATION', 25, 105);
+      doc.text('CLIENT INFORMATION', 25, 88);
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text('Name: ' + clientName, 25, 115);
-      
-      // Handle multi-line address
+      doc.text('Name: ' + clientName, 25, 96);
       const addressLines = doc.splitTextToSize('Address: ' + clientAddress, 160);
-      doc.text(addressLines, 25, 125);
+      doc.text(addressLines, 25, 102);
 
-      // Service details section
-      let yPosition = 150;
+      let yPosition = 125;
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.text('SERVICE DETAILS', 20, yPosition);
 
-      yPosition += 10;
+      yPosition += 5;
       doc.setDrawColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-      doc.setLineWidth(1);
+      doc.setLineWidth(0.5);
       doc.line(20, yPosition, 190, yPosition);
 
-      yPosition += 15;
+      yPosition += 10;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       doc.text('Description:', 20, yPosition);
-
-      yPosition += 8;
       doc.setFont('helvetica', 'normal');
-      const descLines = doc.splitTextToSize(serviceDesc, 170);
-      doc.text(descLines, 20, yPosition);
+      const descLines = doc.splitTextToSize(serviceDesc, 150);
+      doc.text(descLines, 50, yPosition);
 
-      yPosition += descLines.length * 5 + 10;
+      yPosition += descLines.length * 5 + 5;
       doc.setFont('helvetica', 'bold');
       doc.text('Service Date:', 20, yPosition);
       doc.setFont('helvetica', 'normal');
-      doc.text(invoiceDate, 60, yPosition);
+      doc.text(invoiceDate, 50, yPosition);
 
-      yPosition += 8;
+      yPosition += 7;
       doc.setFont('helvetica', 'bold');
       doc.text('Time:', 20, yPosition);
       doc.setFont('helvetica', 'normal');
-      doc.text(startTime + ' - ' + endTime, 60, yPosition);
+      doc.text(startTime + ' - ' + endTime, 50, yPosition);
 
-      // Amount section with styling
-      yPosition += 20;
+      yPosition += 15;
       doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(20, yPosition, 170, 25, 'F');
-
+      doc.rect(110, yPosition, 80, 15, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('TOTAL AMOUNT: $' + amount, 25, yPosition + 16);
+      doc.text('TOTAL: $' + amount.toFixed(2), 115, yPosition + 10);
 
-      // Terms and conditions
-      yPosition += 40;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text('TERMS & CONDITIONS', 20, yPosition);
-
-      yPosition += 10;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      
-      const terms = [
-        '• This quotation is valid for 30 days from the date of issue',
-        '• 50% advance payment required to commence work',
-        '• All prices are inclusive of applicable taxes',
-        '• Warranty period: 12 months from installation date',
-        '• Installation and configuration services included'
-      ];
-
-      terms.forEach((term, index) => {
-        doc.text(term, 20, yPosition + (index * 6));
-      });
-
-      // Footer
-      yPosition += 45;
-      doc.setDrawColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-      doc.setLineWidth(1);
-      doc.line(20, yPosition, 190, yPosition);
-
-      yPosition += 10;
+      yPosition += 30;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text('Debug Computer Peripherals', 20, yPosition);
-
+      doc.text('TERMS & CONDITIONS', 20, yPosition);
+      yPosition += 5;
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text('Email: info@debugperipherals.com | Phone: +1 (555) 123-4567', 20, yPosition + 8);
-      doc.text('Website: www.debugperipherals.com', 20, yPosition + 16);
+      const terms = [
+        '• This quotation is valid for 30 days from the date of issue.',
+        '• 50% advance payment required to commence work.',
+        '• All prices are inclusive of applicable taxes.',
+        '• Warranty period: 12 months from installation date.'
+      ];
+      terms.forEach((term, index) => {
+        doc.text(term, 20, yPosition + (index * 5));
+      });
 
-      // Add signature area
-      yPosition += 30;
+      const footerY = doc.internal.pageSize.height - 40;
+      doc.setDrawColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.setLineWidth(0.5);
+      doc.line(20, footerY, 190, footerY);
       doc.setFontSize(9);
-      doc.text('Prepared by: ________________________', 20, yPosition);
-      doc.text('Client Signature: ________________________', 110, yPosition);
-      doc.text('Date: ___________', 20, yPosition + 15);
-      doc.text('Date: ___________', 110, yPosition + 15);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.text('Thank you for your business!', doc.internal.pageSize.width / 2, footerY + 10, { align: 'center' });
+      doc.text('info@debugperipherals.com | +1 (555) 123-4567 | www.debugperipherals.com', doc.internal.pageSize.width / 2, footerY + 16, { align: 'center' });
 
-      // Save the PDF
       doc.save('Service-Quotation-' + quotationNumber + '.pdf');
     }
 
-    // Share function (existing)
+    // Share function
     async function shareQuotation() {
       if (!currentQuotationData) {
-        showStatus('No quotation data available', 'error');
+        alert('No quotation data available.');
         return;
       }
 
@@ -678,10 +581,8 @@
         title: 'Service Quotation',
         text: `Quotation from Debug Computer Peripherals:\n` +
               `Client: ${currentQuotationData.clientName}\n` +
-              `Address: ${currentQuotationData.clientAddress}\n` +
               `Description: ${currentQuotationData.serviceDesc}\n` +
-              `Amount: $${currentQuotationData.amount}\n` +
-              `Date: ${currentQuotationData.invoiceDate}`,
+              `Amount: $${currentQuotationData.amount}\n`,
         url: window.location.href
       };
 
@@ -693,7 +594,7 @@
           console.error('Share failed:', err.message);
         }
       } else {
-        showStatus('Sharing is not supported on this browser. Please copy the details manually.', 'warning');
+        alert('Sharing is not supported on this browser.');
       }
     }
   </script>
