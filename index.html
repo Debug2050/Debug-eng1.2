@@ -170,7 +170,7 @@
       <button onclick="downloadPDF()">Download PDF</button>
       <button onclick="window.print()">Print Quotation</button>
       <button onclick="shareQuotation()">Share Quotation</button>
-      </div>
+    </div>
 
     <div class="quotation-history" style="display: none;" id="historySection">
       <h3 class="toggle-section" onclick="toggleHistory()">📋 Quotation History (Click to expand)</h3>
@@ -185,8 +185,8 @@
     // --- IMPORTANT ---
     // You MUST enter your actual Supabase credentials here for the database to work.
     window.ENV = {
-      SUPABASE_URL: 'https://gsnsdatsrrqhfqznyhet.supabase.co',
-      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzbnNkYXRzcnJxaGZxem55aGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NzgyMzcsImV4cCI6MjA2NzQ1NDIzN30.cziUq0KItB8XshLneFlGQ0DSc_jE-icCuyoWt-BY5Og'
+      SUPABASE_URL: 'https://your-project-id.supabase.co',
+      SUPABASE_ANON_KEY: 'your-public-anon-key'
     };
 
     let supabaseClient = null;
@@ -198,7 +198,6 @@
       { name: "Face Recognition Terminal", desc: "Advanced biometric terminal", price: 60000 }
     ];
 
-    // Initialize product select
     const select = document.getElementById("productSelect");
     products.forEach((product, index) => {
       const option = document.createElement("option");
@@ -224,10 +223,7 @@
       statusElement.textContent = message;
       statusElement.className = `status-message ${type}`;
       statusElement.style.display = 'block';
-      
-      setTimeout(() => {
-        statusElement.style.display = 'none';
-      }, 5000);
+      setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
     }
 
     function toggleHistory() {
@@ -237,7 +233,7 @@
 
     function initializeSupabaseInternal(url, key) {
       if (!url || url.includes('your-project-id')) {
-        console.error("Supabase URL is not set. Please update it in the script.");
+        console.error("Supabase URL is not set.");
         return;
       }
       try {
@@ -269,11 +265,10 @@
       if (supabaseUrl && supabaseKey) {
         initializeSupabaseInternal(supabaseUrl, supabaseKey);
       } else {
-        console.warn("Supabase credentials not found. Please set them in the window.ENV object.");
+        console.warn("Supabase credentials not found.");
       }
     });
 
-    // MODIFIED: Form submission now automatically saves
     document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -287,17 +282,26 @@
       generateBtn.textContent = 'Generating...';
 
       try {
-        // 1. Get the latest count to generate the new quotation number
-        const { count, error: countError } = await supabaseClient
+        // --- LOGIC CHANGE ---
+        // Get the highest existing number instead of counting rows.
+        const { data: lastQuote, error: fetchError } = await supabaseClient
             .from('quotations')
-            .select('*', { count: 'exact', head: true });
+            .select('quotation_number')
+            .order('quotation_number', { ascending: false }) // Order by the number itself
+            .limit(1)
+            .maybeSingle(); // Use maybeSingle to handle case with 0 quotes gracefully
 
-        if (countError) throw countError;
+        if (fetchError) throw fetchError;
+
+        let nextNumber = 1; // Default to 1 if no quotes exist
+        if (lastQuote) {
+            const lastNumberStr = lastQuote.quotation_number.split('-').pop(); // "DCP-2025-00005" -> "00005"
+            nextNumber = parseInt(lastNumberStr, 10) + 1;
+        }
         
-        const newCount = (count || 0) + 1;
-        const quotationNumber = 'DCP-' + new Date().getFullYear() + '-' + String(newCount).padStart(5, '0');
+        const quotationNumber = 'DCP-' + new Date().getFullYear() + '-' + String(nextNumber).padStart(5, '0');
+        // --- END LOGIC CHANGE ---
 
-        // 2. Get all form data
         const clientName = document.getElementById('clientName').value;
         const clientAddress = document.getElementById('clientAddress').value;
         const technicianName = document.getElementById('technicianName').value;
@@ -307,27 +311,18 @@
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
 
-        // 3. Store data for preview and PDF
         currentQuotationData = {
-          quotationNumber,
-          clientName,
-          clientAddress,
-          technicianName,
-          serviceDesc,
-          amount: parseFloat(amount),
-          invoiceDate,
-          startTime,
-          endTime
+          quotationNumber, clientName, clientAddress, technicianName,
+          serviceDesc, amount: parseFloat(amount), invoiceDate, startTime, endTime
         };
         
-        // 4. Insert the new quotation into the database
         const { error: insertError } = await supabaseClient
           .from('quotations')
           .insert([{
             quotation_number: quotationNumber,
             client_name: clientName,
             client_address: clientAddress,
-            technician_name: technicianName, // new field
+            technician_name: technicianName,
             service_description: serviceDesc,
             amount: parseFloat(amount),
             service_date: invoiceDate,
@@ -337,10 +332,8 @@
           
         if (insertError) throw insertError;
 
-        // 5. Show success and update UI
         showStatus('Quotation generated and saved successfully!', 'success');
         
-        // Update and show preview
         document.getElementById('previewQuotationId').innerText = quotationNumber;
         document.getElementById('previewClient').innerText = clientName;
         document.getElementById('previewAddress').innerText = clientAddress;
@@ -353,7 +346,7 @@
         document.getElementById('invoicePreview').style.display = 'block';
 
         document.getElementById('invoiceForm').reset();
-        loadQuotations(); // Refresh history list
+        loadQuotations();
 
       } catch (error) {
         showStatus(`Error: ${error.message}`, 'error');
@@ -366,14 +359,12 @@
 
     async function loadQuotations() {
       if (!supabaseClient) return;
-
       try {
         const { data, error } = await supabaseClient
           .from('quotations')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(10);
-
         if (error) throw error;
 
         const quotationsList = document.getElementById('quotationsList');
@@ -382,7 +373,6 @@
           quotationsList.innerHTML = '<p>No quotations found.</p>';
           return;
         }
-
         data.forEach(quotation => {
           const quotationElement = document.createElement('div');
           quotationElement.className = 'history-item';
@@ -395,7 +385,6 @@
           `;
           quotationsList.appendChild(quotationElement);
         });
-
       } catch (error) {
         showStatus('Error loading quotations: ' + error.message, 'error');
       }
@@ -403,15 +392,12 @@
 
     function downloadPDF() {
       if (!currentQuotationData) {
-        alert('No quotation data available. Please generate one first.');
+        alert('No quotation data available.');
         return;
       }
-
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      
       const { quotationNumber, clientName, clientAddress, technicianName, serviceDesc, amount, invoiceDate, startTime, endTime } = currentQuotationData;
-
       const primaryColor = [46, 125, 50], textColor = [33, 33, 33];
       
       doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -480,27 +466,6 @@
       };
       if (navigator.share) await navigator.share(shareData);
       else alert('Sharing is not supported on this browser.');
-    }
-    
-    // MODIFIED: Added technician_name to the create table SQL
-    function createTable() {
-      const tableSQL = `
-CREATE TABLE IF NOT EXISTS quotations (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  quotation_number TEXT NOT NULL UNIQUE,
-  client_name TEXT NOT NULL,
-  client_address TEXT NOT NULL,
-  technician_name TEXT,
-  service_description TEXT NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  service_date DATE NOT NULL,
-  start_time TIME NOT NULL,
-  end_time TIME NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);`;
-      alert("Copy the SQL from the console to create your table in the Supabase SQL Editor.");
-      console.log("--- SQL to create 'quotations' table ---");
-      console.log(tableSQL);
     }
   </script>
 </body>
