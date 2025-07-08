@@ -153,6 +153,15 @@
       <input type="time" id="endTime" required>
 
       <button type="submit" id="generateBtn">Generate & Save Quotation</button>
+
+// new
+<label>Select Existing Customer</label>
+<select id="customerSelect">
+  <option value="">-- Select Customer --</option>
+</select>
+
+
+
     </form>
     
     <div id="statusMessage" class="status-message"></div>
@@ -512,6 +521,55 @@ function checkHistoryPassword() {
 
 
     }
+
+
+// new
+
+async function loadCustomers() {
+  if (!supabaseClient) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const customerSelect = document.getElementById('customerSelect');
+    data.forEach((customer) => {
+      const option = document.createElement('option');
+      option.value = customer.id;
+      option.textContent = customer.name;
+      option.dataset.address = customer.address;
+      customerSelect.appendChild(option);
+    });
+
+    // Auto-fill on selection
+    customerSelect.addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const name = selectedOption.textContent;
+      const address = selectedOption.dataset.address;
+
+      if (name && address) {
+        document.getElementById('clientName').value = name;
+        document.getElementById('clientAddress').value = address;
+      }
+    });
+  } catch (error) {
+    console.error("Error loading customers:", error.message);
+  }
+}
+
+// Call this after Supabase is initialized
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (supabaseClient) loadCustomers();
+  }, 1000);
+});
+
+
+
   </script>
 </body>
 </html>
