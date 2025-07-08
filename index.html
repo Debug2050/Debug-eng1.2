@@ -124,7 +124,11 @@
 
     <form id="invoiceForm">
       <label>Client Name</label>
-      <input type="text" id="clientName" required>
+      <select id="clientSelect">
+  <option value="">-- Select Existing Client --</option>
+</select>
+<input type="text" id="clientName" placeholder="Or type name manually" required>
+
 
       <label>Client Address</label>
       <textarea id="clientAddress" required></textarea>
@@ -154,11 +158,8 @@
 
       <button type="submit" id="generateBtn">Generate & Save Quotation</button>
 
-// new
-<label>Select Existing Customer</label>
-<select id="customerSelect">
-  <option value="">-- Select Customer --</option>
-</select>
+
+
 
 
 
@@ -290,6 +291,10 @@
       }
     }
 
+
+
+
+
     window.addEventListener('load', function() {
       const supabaseUrl = window.ENV?.SUPABASE_URL;
       const supabaseKey = window.ENV?.SUPABASE_ANON_KEY;
@@ -307,6 +312,66 @@
           showStatus('Cannot save. Supabase is not connected.', 'error');
           return;
       }
+
+
+async function fetchClients() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient.from('clients').select('*');
+    if (error) throw error;
+
+    const select = document.getElementById('clientSelect');
+    data.forEach(client => {
+      const option = document.createElement('option');
+      option.value = client.id;
+      option.textContent = client.client_name;
+      option.dataset.name = client.client_name;
+      option.dataset.address = client.client_address;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    console.error('Error loading clients:', err.message);
+  }
+}
+
+window.addEventListener('load', function() {
+  const supabaseUrl = window.ENV?.SUPABASE_URL;
+  const supabaseKey = window.ENV?.SUPABASE_ANON_KEY;
+  if (supabaseUrl && supabaseKey) {
+    initializeSupabaseInternal(supabaseUrl, supabaseKey);
+  } else {
+    console.warn("Supabase credentials not found.");
+  }
+});
+
+window.addEventListener('load', function() {
+  const supabaseUrl = window.ENV?.SUPABASE_URL;
+  const supabaseKey = window.ENV?.SUPABASE_ANON_KEY;
+  if (supabaseUrl && supabaseKey) {
+    initializeSupabaseInternal(supabaseUrl, supabaseKey);
+    fetchClients(); // 👈 ADD THIS LINE
+  } else {
+    console.warn("Supabase credentials not found.");
+  }
+});
+
+document.getElementById('clientSelect').addEventListener('change', function () {
+  const selectedOption = this.options[this.selectedIndex];
+  const name = selectedOption.dataset.name;
+  const address = selectedOption.dataset.address;
+
+  if (name && address) {
+    document.getElementById('clientName').value = name;
+    document.getElementById('clientAddress').value = address;
+  } else {
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientAddress').value = '';
+  }
+});
+
+
+
+
 
       const generateBtn = document.getElementById('generateBtn');
       generateBtn.disabled = true;
@@ -522,51 +587,6 @@ function checkHistoryPassword() {
 
     }
 
-
-// new
-
-async function loadCustomers() {
-  if (!supabaseClient) return;
-
-  try {
-    const { data, error } = await supabaseClient
-      .from('customers')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    const customerSelect = document.getElementById('customerSelect');
-    data.forEach((customer) => {
-      const option = document.createElement('option');
-      option.value = customer.id;
-      option.textContent = customer.name;
-      option.dataset.address = customer.address;
-      customerSelect.appendChild(option);
-    });
-
-    // Auto-fill on selection
-    customerSelect.addEventListener('change', function () {
-      const selectedOption = this.options[this.selectedIndex];
-      const name = selectedOption.textContent;
-      const address = selectedOption.dataset.address;
-
-      if (name && address) {
-        document.getElementById('clientName').value = name;
-        document.getElementById('clientAddress').value = address;
-      }
-    });
-  } catch (error) {
-    console.error("Error loading customers:", error.message);
-  }
-}
-
-// Call this after Supabase is initialized
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    if (supabaseClient) loadCustomers();
-  }, 1000);
-});
 
 
 
