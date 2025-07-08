@@ -172,6 +172,28 @@
       <button onclick="shareQuotation()">Share Quotation</button>
     </div>
 
+
+<div class="quotation-history" style="display: none;" id="historySection">
+
+
+<!-- Password Protection for Quotation History -->
+<div id="historyAuth" class="quotation-history">
+  <h3>🔐 Quotation History Access</h3>
+  <input type="password" id="historyPassword" placeholder="Enter password">
+  <button onclick="checkHistoryPassword()">Unlock History</button>
+  <p id="historyAuthMsg" class="status-message warning" style="display: none;"></p>
+</div>
+
+<!-- Actual History Section (hidden until password is correct) -->
+<div class="quotation-history" style="display: none;" id="historySection">
+  <h3 class="toggle-section" onclick="toggleHistory()">📋 Quotation History (Click to expand)</h3>
+  <div id="historyContent" style="display: none;">
+    <button onclick="loadQuotations()">Load All Quotations</button>
+    <div id="quotationsList"></div>
+  </div>
+</div>
+
+
     <div class="quotation-history" style="display: none;" id="historySection">
       <h3 class="toggle-section" onclick="toggleHistory()">📋 Quotation History (Click to expand)</h3>
       <div id="historyContent" style="display: none;">
@@ -466,6 +488,29 @@
       };
       if (navigator.share) await navigator.share(shareData);
       else alert('Sharing is not supported on this browser.');
+
+
+// Password check for history section
+const HISTORY_PASSWORD = 'debug123'; // 🔐 Change to your preferred password
+
+function checkHistoryPassword() {
+  const input = document.getElementById('historyPassword').value;
+  const msg = document.getElementById('historyAuthMsg');
+
+  if (input === HISTORY_PASSWORD) {
+    document.getElementById('historyAuth').style.display = 'none';
+    document.getElementById('historySection').style.display = 'block';
+    msg.style.display = 'none';
+  } else {
+    msg.textContent = '❌ Incorrect password. Please try again.';
+    msg.className = 'status-message error';
+    msg.style.display = 'block';
+  }
+}
+
+
+
+
     }
   </script>
 </body>
