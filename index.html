@@ -314,6 +314,26 @@
       }
 
 
+document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  if (!supabaseClient) {
+      showStatus('Cannot save. Supabase is not connected.', 'error');
+      return;
+  }
+
+  async function fetchClients() {
+    ...
+  }
+
+  document.getElementById('clientSelect').addEventListener('change', function () {
+    ...
+  });
+
+  // rest of submit logic...
+});
+
+
 async function fetchClients() {
   if (!supabaseClient) return;
   try {
@@ -321,6 +341,7 @@ async function fetchClients() {
     if (error) throw error;
 
     const select = document.getElementById('clientSelect');
+    select.innerHTML = '<option value="">-- Select Existing Client --</option>'; // clear old
     data.forEach(client => {
       const option = document.createElement('option');
       option.value = client.id;
@@ -333,6 +354,18 @@ async function fetchClients() {
     console.error('Error loading clients:', err.message);
   }
 }
+
+document.getElementById('clientSelect').addEventListener('change', function () {
+  const selectedOption = this.options[this.selectedIndex];
+  const name = selectedOption.dataset.name;
+  const address = selectedOption.dataset.address;
+
+  document.getElementById('clientName').value = name || '';
+  document.getElementById('clientAddress').value = address || '';
+});
+
+
+
 
 window.addEventListener('load', function() {
   const supabaseUrl = window.ENV?.SUPABASE_URL;
