@@ -361,6 +361,7 @@
               <h3><i class="bi bi-file-earmark-check"></i> Service Quotation Preview</h3>
               <div class="row">
                 <div class="col-md-6">
+                  <p><strong>Quotation Number:</strong> <span id="previewQuotationNumber" class="badge-custom"></span></p>
                   <p><strong>Quotation ID:</strong> <span id="previewQuotationId" class="badge-custom"></span></p>
                   <p><strong>Client:</strong> <span id="previewClient"></span></p>
                   <p><strong>Technician:</strong> <span id="previewTechnician"></span></p>
@@ -441,7 +442,7 @@
         <div class="modal-body">
           <form id="clientForm">
             <div class="row">
-              <div class="col-md6 mb-3">
+              <div class="col-md-6 mb-3">
                 <label class="form-label">
                   <i class="bi bi-person"></i> Client Name
                 </label>
@@ -561,7 +562,9 @@
       if (!supabaseClient) return;
       try {
         const { error: quotationsError } = await supabaseClient.from('quotations').select('id').limit(1);
-        if (quotationsError) throw quotationsError;
+        if (quotationsError && !quotationsError.message.includes('does not exist')) {
+          throw quotationsError;
+        }
         
         const { error: clientsError } = await supabaseClient.from('clients').select('id').limit(1);
         if (clientsError && clientsError.message.includes('does not exist')) {
@@ -574,6 +577,12 @@
         console.error('Database connection error:', error.message);
         showStatus('Database connection error. Please check your Supabase credentials.', 'danger');
       }
+    }
+
+    // Generate quotation number based on ID and year
+    function generateQuotationNumber(id) {
+      const year = new Date().getFullYear();
+      return `Q-${year}-${String(id).padStart(3, '0')}`;
     }
 
     // Client management functions
@@ -721,7 +730,8 @@
           const item = document.createElement('div');
           item.className = 'history-item';
           item.innerHTML = `
-            <h5>Quotation #${quotation.id}</h5>
+            <h5>Quotation #${quotation.quotation_number}</h5>
+            <p><strong>ID:</strong> ${quotation.id}</p>
             <p><strong>Client:</strong> ${quotation.clients.name}</p>
             <p><strong>Technician:</strong> ${quotation.technician_name}</p>
             <p><strong>Amount:</strong> LKR ${quotation.amount}</p>
@@ -754,6 +764,7 @@
 
         currentQuotationData = {
           id: data.id,
+          quotation_number: data.quotation_number,
           client_name: data.clients.name,
           client_address: data.clients.address,
           technician_name: data.technician_name,
@@ -766,6 +777,7 @@
         };
 
         // Update preview
+        document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
         document.getElementById('previewQuotationId').textContent = data.id;
         document.getElementById('previewClient').textContent = data.clients.name;
         document.getElementById('previewTechnician').textContent = data.technician_name;
@@ -801,19 +813,20 @@
 
       // Quotation details
       doc.setFontSize(10);
-      doc.text(`Quotation ID: ${currentQuotationData.id}`, 20, 50);
-      doc.text(`Client: ${currentQuotationData.client_name}`, 20, 60);
-      doc.text(`Address: ${currentQuotationData.client_address}`, 20, 70);
-      doc.text(`Technician: ${currentQuotationData.technician_name}`, 20, 80);
-      doc.text(`Date: ${currentQuotationData.date}`, 20, 90);
-      doc.text(`Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}`, 20, 100);
-      doc.text(`Product: ${currentQuotationData.product}`, 20, 110);
-      doc.text(`Description: ${currentQuotationData.description}`, 20, 120, { maxWidth: 160 });
+      doc.text(`Quotation Number: ${currentQuotationData.quotation_number}`, 20, 50);
+      doc.text(`Quotation ID: ${currentQuotationData.id}`, 20, 60);
+      doc.text(`Client: ${currentQuotationData.client_name}`, 20, 70);
+      doc.text(`Address: ${currentQuotationData.client_address}`, 20, 80);
+      doc.text(`Technician: ${currentQuotationData.technician_name}`, 20, 90);
+      doc.text(`Date: ${currentQuotationData.date}`, 20, 100);
+      doc.text(`Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}`, 20, 110);
+      doc.text(`Product: ${currentQuotationData.product}`, 20, 120);
+      doc.text(`Description: ${currentQuotationData.description}`, 20, 130, { maxWidth: 160 });
       doc.setTextColor(0, 128, 0);
-      doc.text(`Amount: LKR ${currentQuotationData.amount}`, 20, 140);
+      doc.text(`Amount: LKR ${currentQuotationData.amount}`, 20, 150);
 
       // Save PDF
-      doc.save(`Quotation_${currentQuotationData.id}.pdf`);
+      doc.save(`Quotation_${currentQuotationData.quotation_number}.pdf`);
     }
 
     function shareQuotation() {
@@ -822,12 +835,13 @@
         return;
       }
 
-      const subject = `Service Quotation ${currentQuotationData.id} from Debug Computer Peripherals`;
+      const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
       const body = `
 Dear ${currentQuotationData.client_name},
 
 Please find your service quotation details below:
 
+Quotation Number: ${currentQuotationData.quotation_number}
 Quotation ID: ${currentQuotationData.id}
 Date: ${currentQuotationData.date}
 Technician: ${currentQuotationData.technician_name}
@@ -990,7 +1004,7 @@ Debug Computer Peripherals
           clientsData.push(newClient);
         }
 
-        // Save quotation
+        // Save quotation without quotation_number initially
         const quotationData = {
           client_id: clientId,
           technician_name: technicianName,
@@ -1010,9 +1024,19 @@ Debug Computer Peripherals
 
         if (error) throw error;
 
+        // Generate and update quotation_number
+        const quotationNumber = generateQuotationNumber(data.id);
+        const { error: updateError } = await supabaseClient
+          .from('quotations')
+          .update({ quotation_number: quotationNumber })
+          .eq('id', data.id);
+
+        if (updateError) throw updateError;
+
         // Update preview
         currentQuotationData = {
           id: data.id,
+          quotation_number: quotationNumber,
           client_name: clientName,
           client_address: clientAddress,
           technician_name: technicianName,
@@ -1024,6 +1048,7 @@ Debug Computer Peripherals
           end_time: endTime
         };
 
+        document.getElementById('previewQuotationNumber').textContent = quotationNumber;
         document.getElementById('previewQuotationId').textContent = data.id;
         document.getElementById('previewClient').textContent = clientName;
         document.getElementById('previewTechnician').textContent = technicianName;
