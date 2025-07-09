@@ -249,290 +249,6 @@
         <div class="main-container">
           <!-- Header Section -->
           <div class="header-section">
-            <h1><i class="bi bi-pc-display-horizontal……
-
-System: ### Updated Full Code for Service Quotation Generator
-
-Below is the complete, updated code for your **Service Quotation Generator** that supports selecting multiple products. The changes include:
-
-- Replaced the single product `<select>` with a dynamic table for adding/removing multiple products.
-- Stored multiple products in a JSONB column in the `quotations` table.
-- Updated the form, preview, PDF generation, and quotation history to handle multiple products.
-- Removed the single `amount` and `serviceDesc` fields, as they are now managed per product.
-- Maintained all other functionality (client management, Supabase integration, PDF export, sharing, etc.).
-- Ensured the code aligns with the existing UI/UX design and Supabase setup.
-
-**Note**: Before running this code, ensure your Supabase `quotations` table schema is updated as follows (run in Supabase SQL editor):
-
-```sql
-ALTER TABLE quotations
-  DROP COLUMN product,
-  DROP COLUMN description,
-  ADD COLUMN products JSONB NOT NULL,
-  ALTER COLUMN amount TYPE DECIMAL(10,2);
-```
-
-Here is the full updated code:
-
-<xaiArtifact artifact_id="cdf46714-1204-409c-a298-a6dc0c4c70af" artifact_version_id="199c9ac6-3319-4bec-9391-16be362222d1" title="index.html" contentType="text/html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Debug Computer Peripherals - Service Quotation Generator</title>
-  
-  <!-- Bootstrap CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
-  <!-- PDF Generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <style>
-    * {
-      font-family: 'Poppins', sans-serif;
-    }
-    
-    body {
-      background: linear-gradient(135deg, #4CAF50, #81C784);
-      min-height: 100vh;
-      padding: 20px 0;
-    }
-    
-    .main-container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
-    
-    .header-section {
-      background: linear-gradient(135deg, #2E7D32, #4CAF50);
-      color: white;
-      padding: 2rem 0;
-      text-align: center;
-    }
-    
-    .header-section h1 {
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      font-size: 2.5rem;
-    }
-    
-    .header-section p {
-      opacity: 0.9;
-      font-size: 1.1rem;
-      margin-bottom: 0;
-    }
-    
-    .form-section {
-      padding: 2rem;
-    }
-    
-    .form-label {
-      font-weight: 600;
-      color: #2E7D32;
-      margin-bottom: 0.5rem;
-    }
-    
-    .form-control, .form-select {
-      border-radius: 10px;
-      border: 2px solid #e9ecef;
-      padding: 0.75rem;
-      transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-      border-color: #4CAF50;
-      box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      border: none;
-      border-radius: 10px;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #388E3C, #4CAF50);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-    }
-    
-    .btn-info {
-      background: linear-gradient(135deg, #2196F3, #42A5F5);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .btn-info:hover {
-      background: linear-gradient(135deg, #1976D2, #2196F3);
-      transform: translateY(-2px);
-    }
-    
-    .btn-warning {
-      background: linear-gradient(135deg, #FF9800, #FFB74D);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .btn-success {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .btn-danger {
-      background: linear-gradient(135deg, #DC3545, #EF5350);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .client-search-container {
-      position: relative;
-    }
-    
-    .client-suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #dee2e6;
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
-    }
-    
-    .client-suggestion {
-      padding: 0.75rem;
-      cursor: pointer;
-      border-bottom: 1px solid #f8f9fa;
-      transition: background-color 0.2s ease;
-    }
-    
-    .client-suggestion:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .client-suggestion:last-child {
-      border-bottom: none;
-    }
-    
-    .invoice-preview {
-      background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
-      border: 2px solid #C8E6C9;
-      border-radius: 15px;
-      padding: 2rem;
-      margin-top: 2rem;
-    }
-    
-    .invoice-preview h3 {
-      color: #2E7D32;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-    }
-    
-    .quotation-history {
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 15px;
-      padding: 1.5rem;
-      margin-top: 2rem;
-    }
-    
-    .history-item {
-      background: white;
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid #e9ecef;
-      transition: transform 0.2s ease;
-    }
-    
-    .history-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .history-item h5 {
-      color: #2E7D32;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-    
-    .badge-custom {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    
-    .card-custom {
-      border: none;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .card-header-custom {
-      background: linear-gradient(135deg, #2E7D32, #4CAF50);
-      color: white;
-      border-radius: 15px 15px 0 0 !important;
-      padding: 1rem 1.5rem;
-      border: none;
-    }
-    
-    .input-group-text {
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: 10px 0 0 10px;
-    }
-    
-    .form-floating .form-control {
-      border-radius: 10px;
-    }
-    
-    .alert-custom {
-      border: none;
-      border-radius: 10px;
-      font-weight: 500;
-    }
-    
-    @media (max-width: 768px) {
-      .header-section h1 {
-        font-size: 2rem;
-      }
-      
-      .form-section {
-        padding: 1rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container-fluid">
-    <div class="row justify-content-center">
-      <div class="col-12 col-lg-10 col-xl-8">
-        <div class="main-container">
-          <!-- Header Section -->
-          <div class="header-section">
             <h1><i class="bi bi-pc-display-horizontal"></i> Debug Computer Peripherals</h1>
             <p>Professional Service Quotation Generator</p>
           </div>
@@ -579,29 +295,32 @@ Here is the full updated code:
                 <textarea class="form-control" id="clientAddress" rows="3" placeholder="Enter client address" required></textarea>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-box-seam"></i> Products
-                </label>
-                <div class="input-group mb-2">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-box-seam"></i> Select Product
+                  </label>
                   <select class="form-select" id="productSelect">
                     <option value="">-- Select Product --</option>
                   </select>
-                  <button type="button" class="btn btn-success" id="addProductBtn">
-                    <i class="bi bi-plus-circle"></i> Add Product
-                  </button>
                 </div>
-                <table class="table table-bordered" id="selectedProductsTable">
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>Description</th>
-                      <th>Amount (LKR)</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="selectedProductsBody"></tbody>
-                </table>
+                
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-currency-dollar"></i> Amount (LKR)
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">LKR</span>
+                    <input type="number" class="form-control" id="amount" min="0" step="0.01" required>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="bi bi-card-text"></i> Product / Service Description
+                </label>
+                <textarea class="form-control" id="serviceDesc" rows="3" required></textarea>
               </div>
 
               <div class="row">
@@ -650,12 +369,11 @@ Here is the full updated code:
                 </div>
                 <div class="col-md-6">
                   <p><strong>Address:</strong> <span id="previewAddress"></span></p>
-                  <p><strong>Total Amount:</strong> <span class="text-success fw-bold">LKR <span id="previewAmount"></span></span></p>
+                  <p><strong>Amount:</strong> <span class="text-success fw-bold">LKR <span id="previewAmount"></span></span></p>
                   <p><strong>Time:</strong> <span id="previewStart"></span> - <span id="previewEnd"></span></p>
                 </div>
               </div>
-              <p><strong>Products:</strong></p>
-              <div id="previewDesc"></div>
+              <p><strong>Description:</strong> <span id="previewDesc"></span></p>
               
               <div class="mt-3 d-flex gap-2 flex-wrap">
                 <button class="btn btn-success" onclick="downloadPDF()">
@@ -779,7 +497,6 @@ Here is the full updated code:
     let currentQuotationData = null;
     let selectedClientId = null;
     let clientsData = [];
-    let selectedProducts = [];
 
     const products = [
       { name: "Fingerprint Scanner", desc: "ZKT Fingerprint Attendance Device", price: 45000 },
@@ -794,6 +511,18 @@ Here is the full updated code:
       option.value = index;
       option.textContent = product.name;
       select.appendChild(option);
+    });
+
+    select.addEventListener("change", function() {
+      const selectedIndex = this.value;
+      if (selectedIndex) {
+        const selected = products[selectedIndex];
+        document.getElementById("serviceDesc").value = selected.desc;
+        document.getElementById("amount").value = selected.price;
+      } else {
+        document.getElementById("serviceDesc").value = "";
+        document.getElementById("amount").value = "";
+      }
     });
 
     // Password for history section (in production, use hashed password stored in Supabase)
@@ -971,59 +700,6 @@ Here is the full updated code:
       }
     }
 
-    // Product management functions
-    function addProductToTable() {
-      const productSelect = document.getElementById('productSelect');
-      const selectedIndex = productSelect.value;
-      
-      if (!selectedIndex) {
-        showStatus('Please select a product to add.', 'danger');
-        return;
-      }
-
-      const product = products[selectedIndex];
-      selectedProducts.push({
-        index: selectedIndex,
-        name: product.name,
-        desc: product.desc,
-        price: parseFloat(product.price)
-      });
-
-      updateProductTable();
-      productSelect.value = ''; // Reset dropdown
-    }
-
-    function removeProduct(index) {
-      selectedProducts.splice(index, 1);
-      updateProductTable();
-    }
-
-    function updateProductTable() {
-      const tbody = document.getElementById('selectedProductsBody');
-      tbody.innerHTML = '';
-
-      selectedProducts.forEach((product, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${product.name}</td>
-          <td>${product.desc}</td>
-          <td>LKR ${product.price.toFixed(2)}</td>
-          <td>
-            <button class="btn btn-danger btn-sm" onclick="removeProduct(${index})">
-              <i class="bi bi-trash"></i> Remove
-            </button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-
-      // Update total amount in preview (if needed)
-      const totalAmount = selectedProducts.reduce((sum, product) => sum + product.price, 0);
-      if (document.getElementById('invoicePreview').style.display === 'block') {
-        document.getElementById('previewAmount').textContent = totalAmount.toFixed(2);
-      }
-    }
-
     // Quotation management functions
     async function loadQuotations() {
       if (!supabaseClient) {
@@ -1051,7 +727,6 @@ Here is the full updated code:
         }
 
         data.forEach(quotation => {
-          const productsList = quotation.products.map(p => `${p.name} (LKR ${p.price.toFixed(2)})`).join(', ');
           const item = document.createElement('div');
           item.className = 'history-item';
           item.innerHTML = `
@@ -1059,9 +734,9 @@ Here is the full updated code:
             <p><strong>ID:</strong> ${quotation.id}</p>
             <p><strong>Client:</strong> ${quotation.clients.name}</p>
             <p><strong>Technician:</strong> ${quotation.technician_name}</p>
-            <p><strong>Products:</strong> ${productsList}</p>
-            <p><strong>Total Amount:</strong> LKR ${quotation.amount.toFixed(2)}</p>
+            <p><strong>Amount:</strong> LKR ${quotation.amount}</p>
             <p><strong>Date:</strong> ${quotation.date}</p>
+            <p><strong>Description:</strong> ${quotation.description}</p>
             <button class="btn btn-info btn-sm" onclick="viewQuotation('${quotation.id}')">
               <i class="bi bi-eye"></i> View
             </button>
@@ -1093,24 +768,25 @@ Here is the full updated code:
           client_name: data.clients.name,
           client_address: data.clients.address,
           technician_name: data.technician_name,
-          products: data.products,
+          product: data.product,
+          description: data.description,
           amount: data.amount,
           date: data.date,
           start_time: data.start_time,
           end_time: data.end_time
         };
 
+        // Update preview
         document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
         document.getElementById('previewQuotationId').textContent = data.id;
         document.getElementById('previewClient').textContent = data.clients.name;
         document.getElementById('previewTechnician').textContent = data.technician_name;
         document.getElementById('previewDate').textContent = data.date;
         document.getElementById('previewAddress').textContent = data.clients.address;
-        document.getElementById('previewAmount').textContent = data.amount.toFixed(2);
+        document.getElementById('previewAmount').textContent = data.amount;
         document.getElementById('previewStart').textContent = data.start_time;
         document.getElementById('previewEnd').textContent = data.end_time;
-        const descHtml = data.products.map(p => `${p.name}: ${p.desc} (LKR ${p.price.toFixed(2)})`).join('<br>');
-        document.getElementById('previewDesc').innerHTML = descHtml;
+        document.getElementById('previewDesc').textContent = data.description;
         document.getElementById('invoicePreview').style.display = 'block';
       } catch (error) {
         console.error('Error viewing quotation:', error.message);
@@ -1129,7 +805,7 @@ Here is the full updated code:
 
       // Add company header
       doc.setFontSize(20);
-      doc.setTextColor(46, 125, 50);
+      doc.setTextColor(46, 125, 50); // Green color
       doc.text('Debug Computer Peripherals', 20, 20);
       doc.setFontSize(12);
       doc.setTextColor(100);
@@ -1144,31 +820,23 @@ Here is the full updated code:
       doc.text(`Technician: ${currentQuotationData.technician_name}`, 20, 90);
       doc.text(`Date: ${currentQuotationData.date}`, 20, 100);
       doc.text(`Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}`, 20, 110);
-
-      // Products table
-      doc.text('Products:', 20, 120);
-      let y = 130;
-      currentQuotationData.products.forEach(product => {
-        doc.text(`${product.name}: ${product.desc} (LKR ${product.price.toFixed(2)})`, 20, y, { maxWidth: 160 });
-        y += 10;
-      });
-
-      // Total amount
+      doc.text(`Product: ${currentQuotationData.product}`, 20, 120);
+      doc.text(`Description: ${currentQuotationData.description}`, 20, 130, { maxWidth: 160 });
       doc.setTextColor(0, 128, 0);
-      doc.text(`Total Amount: LKR ${currentQuotationData.amount.toFixed(2)}`, 20, y + 10);
+      doc.text(`Amount: LKR ${currentQuotationData.amount}`, 20, 150);
 
+      // Save PDF
       doc.save(`Quotation_${currentQuotationData.quotation_number}.pdf`);
     }
 
-    async function shareQuotation() {
-      if (!currentQuotationData) {
-        showStatus('No quotation data available to share.', 'danger');
-        return;
-      }
+   async function shareQuotation() {
+  if (!currentQuotationData) {
+    showStatus('No quotation data available to share.', 'danger');
+    return;
+  }
 
-      const productsList = currentQuotationData.products.map(p => `${p.name}: ${p.desc} (LKR ${p.price.toFixed(2)})`).join('\n');
-      const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
-      const body = `
+  const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
+  const body = `
 Dear ${currentQuotationData.client_name},
 
 Please find your service quotation details below:
@@ -1178,34 +846,38 @@ Quotation ID: ${currentQuotationData.id}
 Date: ${currentQuotationData.date}
 Technician: ${currentQuotationData.technician_name}
 Address: ${currentQuotationData.client_address}
-Products:
-${productsList}
+Product: ${currentQuotationData.product}
+Description: ${currentQuotationData.description}
 Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}
-Total Amount: LKR ${currentQuotationData.amount.toFixed(2)}
+Amount: LKR ${currentQuotationData.amount}
 
 Best regards,
 Debug Computer Peripherals
-      `;
+  `;
 
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: subject,
-            text: body,
-          });
-          console.log('Quotation shared successfully!');
-        } catch (error) {
-          if (error.name !== 'AbortError') {
-            console.error('Error sharing:', error);
-            showStatus('An error occurred while trying to share.', 'danger');
-          }
-        }
-      } else {
-        console.log('Web Share API not supported, falling back to mailto link.');
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.location.href = mailtoLink;
+  // Check if the Web Share API is supported by the browser
+  if (navigator.share) {
+    try {
+      // Use the Web Share API to show the native share dialog
+      await navigator.share({
+        title: subject,
+        text: body,
+      });
+      console.log('Quotation shared successfully!');
+    } catch (error) {
+      // Handle cases where the user cancels the share dialog or an error occurs
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+        showStatus('An error occurred while trying to share.', 'danger');
       }
     }
+  } else {
+    // Fallback for browsers that do not support the Web Share API (e.g., some desktop browsers)
+    console.log('Web Share API not supported, falling back to mailto link.');
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+  }
+}
 
     // Event listeners
     document.getElementById('clientName').addEventListener('input', function() {
@@ -1224,4 +896,206 @@ Debug Computer Peripherals
 
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.client-search-container')) {
-        document.getElementById('clientSuggestions').style-addon: * Today's date and time is 08:29 PM +0530 on Wednesday, July 09, 2025.
+        document.getElementById('clientSuggestions').style.display = 'none';
+      }
+    });
+
+    // Modal functionality
+    const clientModal = new bootstrap.Modal(document.getElementById('clientModal'));
+
+    document.getElementById('newClientBtn').addEventListener('click', function() {
+      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
+      document.getElementById('modalClientName').value = document.getElementById('clientName').value;
+      document.getElementById('modalClientAddress').value = document.getElementById('clientAddress').value;
+      document.getElementById('modalClientPhone').value = '';
+      document.getElementById('modalClientEmail').value = '';
+      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Save Client';
+      clientModal.show();
+    });
+
+    document.getElementById('updateClientBtn').addEventListener('click', function() {
+      if (!selectedClientId) return;
+      
+      const client = clientsData.find(c => c.id === selectedClientId);
+      if (!client) return;
+      
+      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-gear"></i> Update Client';
+      document.getElementById('modalClientName').value = client.name;
+      document.getElementById('modalClientAddress').value = client.address;
+      document.getElementById('modalClientPhone').value = client.phone || '';
+      document.getElementById('modalClientEmail').value = client.email || '';
+      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Update Client';
+      clientModal.show();
+    });
+
+    document.getElementById('clientForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const clientData = {
+        name: document.getElementById('modalClientName').value,
+        address: document.getElementById('modalClientAddress').value,
+        phone: document.getElementById('modalClientPhone').value || null,
+        email: document.getElementById('modalClientEmail').value || null
+      };
+
+      // Basic validation
+      if (!clientData.name || !clientData.address) {
+        showStatus('Client name and address are required.', 'danger');
+        return;
+      }
+
+      if (clientData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientData.email)) {
+        showStatus('Invalid email format.', 'danger');
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveClientBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+      
+      try {
+        let savedClient;
+        if (selectedClientId) {
+          savedClient = await updateClient(selectedClientId, clientData);
+          showStatus('Client updated successfully!', 'success');
+          clientsData = clientsData.map(c => c.id === selectedClientId ? savedClient : c);
+        } else {
+          savedClient = await saveClient(clientData);
+          showStatus('Client saved successfully!', 'success');
+          clientsData.push(savedClient);
+        }
+
+        document.getElementById('clientName').value = savedClient.name;
+        document.getElementById('clientAddress').value = savedClient.address;
+        selectedClientId = savedClient.id;
+        document.getElementById('updateClientBtn').style.display = 'inline-block';
+        clientModal.hide();
+      } catch (error) {
+        // Error handling already done in saveClient/updateClient
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = selectedClientId ? '<i class="bi bi-save"></i> Update Client' : '<i class="bi bi-save"></i> Save Client';
+      }
+    });
+
+    // Invoice form submission
+    document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Validate inputs
+      const clientName = document.getElementById('clientName').value;
+      const technicianName = document.getElementById('technicianName').value;
+      const clientAddress = document.getElementById('clientAddress').value;
+      const productIndex = document.getElementById('productSelect').value;
+      const amount = document.getElementById('amount').value;
+      const serviceDesc = document.getElementById('serviceDesc').value;
+      const invoiceDate = document.getElementById('invoiceDate').value;
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+
+      if (!clientName || !technicianName || !clientAddress || !productIndex || !amount || !serviceDesc || !invoiceDate || !startTime || !endTime) {
+        showStatus('Please fill all required fields.', 'danger');
+        return;
+      }
+
+      if (parseFloat(amount) <= 0) {
+        showStatus('Amount must be a positive number.', 'danger');
+        return;
+      }
+
+      if (startTime >= endTime) {
+        showStatus('End time must be after start time.', 'danger');
+        return;
+      }
+
+      const generateBtn = document.getElementById('generateBtn');
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+
+      try {
+        // Save or update client
+        let clientId = selectedClientId;
+        if (!clientId) {
+          const newClient = await saveClient({
+            name: clientName,
+            address: clientAddress
+          });
+          clientId = newClient.id;
+          clientsData.push(newClient);
+        }
+
+        // Save quotation without quotation_number initially
+        const quotationData = {
+          client_id: clientId,
+          technician_name: technicianName,
+          product: products[productIndex].name,
+          description: serviceDesc,
+          amount: parseFloat(amount),
+          date: invoiceDate,
+          start_time: startTime,
+          end_time: endTime
+        };
+
+        const { data, error } = await supabaseClient
+          .from('quotations')
+          .insert([quotationData])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Generate and update quotation_number
+        const quotationNumber = generateQuotationNumber(data.id);
+        const { error: updateError } = await supabaseClient
+          .from('quotations')
+          .update({ quotation_number: quotationNumber })
+          .eq('id', data.id);
+
+        if (updateError) throw updateError;
+
+        // Update preview
+        currentQuotationData = {
+          id: data.id,
+          quotation_number: quotationNumber,
+          client_name: clientName,
+          client_address: clientAddress,
+          technician_name: technicianName,
+          product: products[productIndex].name,
+          description: serviceDesc,
+          amount: amount,
+          date: invoiceDate,
+          start_time: startTime,
+          end_time: endTime
+        };
+
+        document.getElementById('previewQuotationNumber').textContent = quotationNumber;
+        document.getElementById('previewQuotationId').textContent = data.id;
+        document.getElementById('previewClient').textContent = clientName;
+        document.getElementById('previewTechnician').textContent = technicianName;
+        document.getElementById('previewDate').textContent = invoiceDate;
+        document.getElementById('previewAddress').textContent = clientAddress;
+        document.getElementById('previewAmount').textContent = amount;
+        document.getElementById('previewStart').textContent = startTime;
+        document.getElementById('previewEnd').textContent = endTime;
+        document.getElementById('previewDesc').textContent = serviceDesc;
+        document.getElementById('invoicePreview').style.display = 'block';
+
+        showStatus('Quotation generated and saved successfully!', 'success');
+        document.getElementById('invoiceForm').reset();
+        document.getElementById('clientSuggestions').style.display = 'none';
+        document.getElementById('updateClientBtn').style.display = 'none';
+        selectedClientId = null;
+      } catch (error) {
+        console.error('Error generating quotation:', error.message);
+        showStatus('Failed to generate quotation.', 'danger');
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="bi bi-file-earmark-text"></i> Generate & Save Quotation';
+      }
+    });
+
+    // Initialize Supabase
+    initializeSupabaseInternal(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+  </script>
+</body>
+</html>
