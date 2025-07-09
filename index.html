@@ -829,14 +829,14 @@
       doc.save(`Quotation_${currentQuotationData.quotation_number}.pdf`);
     }
 
-    function shareQuotation() {
-      if (!currentQuotationData) {
-        showStatus('No quotation data available to share.', 'danger');
-        return;
-      }
+   async function shareQuotation() {
+  if (!currentQuotationData) {
+    showStatus('No quotation data available to share.', 'danger');
+    return;
+  }
 
-      const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
-      const body = `
+  const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
+  const body = `
 Dear ${currentQuotationData.client_name},
 
 Please find your service quotation details below:
@@ -853,11 +853,31 @@ Amount: LKR ${currentQuotationData.amount}
 
 Best regards,
 Debug Computer Peripherals
-      `;
+  `;
 
-      const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailtoLink;
+  // Check if the Web Share API is supported by the browser
+  if (navigator.share) {
+    try {
+      // Use the Web Share API to show the native share dialog
+      await navigator.share({
+        title: subject,
+        text: body,
+      });
+      console.log('Quotation shared successfully!');
+    } catch (error) {
+      // Handle cases where the user cancels the share dialog or an error occurs
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+        showStatus('An error occurred while trying to share.', 'danger');
+      }
     }
+  } else {
+    // Fallback for browsers that do not support the Web Share API (e.g., some desktop browsers)
+    console.log('Web Share API not supported, falling back to mailto link.');
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+  }
+}
 
     // Event listeners
     document.getElementById('clientName').addEventListener('input', function() {
