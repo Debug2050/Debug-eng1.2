@@ -579,6 +579,12 @@
       }
     }
 
+    // Generate quotation number based on ID and year
+    function generateQuotationNumber(id) {
+      const year = new Date().getFullYear();
+      return `Q-${year}-${String(id).padStart(3, '0')}`;
+    }
+
     // Client management functions
     async function loadClients() {
       if (!supabaseClient) return;
@@ -724,7 +730,7 @@
           const item = document.createElement('div');
           item.className = 'history-item';
           item.innerHTML = `
-            <h5>Quotation #${quotation.quotation_number || 'N/A'}</h5>
+            <h5>Quotation #${quotation.quotation_number}</h5>
             <p><strong>ID:</strong> ${quotation.id}</p>
             <p><strong>Client:</strong> ${quotation.clients.name}</p>
             <p><strong>Technician:</strong> ${quotation.technician_name}</p>
@@ -758,7 +764,7 @@
 
         currentQuotationData = {
           id: data.id,
-          quotation_number: data.quotation_number || 'N/A',
+          quotation_number: data.quotation_number,
           client_name: data.clients.name,
           client_address: data.clients.address,
           technician_name: data.technician_name,
@@ -771,7 +777,7 @@
         };
 
         // Update preview
-        document.getElementById('previewQuotationNumber').textContent = data.quotation_number || 'N/A';
+        document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
         document.getElementById('previewQuotationId').textContent = data.id;
         document.getElementById('previewClient').textContent = data.clients.name;
         document.getElementById('previewTechnician').textContent = data.technician_name;
@@ -807,7 +813,7 @@
 
       // Quotation details
       doc.setFontSize(10);
-      doc.text(`Quotation Number: ${currentQuotationData.quotation_number || 'N/A'}`, 20, 50);
+      doc.text(`Quotation Number: ${currentQuotationData.quotation_number}`, 20, 50);
       doc.text(`Quotation ID: ${currentQuotationData.id}`, 20, 60);
       doc.text(`Client: ${currentQuotationData.client_name}`, 20, 70);
       doc.text(`Address: ${currentQuotationData.client_address}`, 20, 80);
@@ -820,7 +826,7 @@
       doc.text(`Amount: LKR ${currentQuotationData.amount}`, 20, 150);
 
       // Save PDF
-      doc.save(`Quotation_${currentQuotationData.quotation_number || 'ID-' + currentQuotationData.id}.pdf`);
+      doc.save(`Quotation_${currentQuotationData.quotation_number}.pdf`);
     }
 
     function shareQuotation() {
@@ -829,13 +835,13 @@
         return;
       }
 
-      const subject = `Service Quotation ${currentQuotationData.quotation_number || 'ID#' + currentQuotationData.id} from Debug Computer Peripherals`;
+      const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
       const body = `
 Dear ${currentQuotationData.client_name},
 
 Please find your service quotation details below:
 
-Quotation Number: ${currentQuotationData.quotation_number || 'N/A'}
+Quotation Number: ${currentQuotationData.quotation_number}
 Quotation ID: ${currentQuotationData.id}
 Date: ${currentQuotationData.date}
 Technician: ${currentQuotationData.technician_name}
@@ -986,85 +992,178 @@ Debug Computer Peripherals
       generateBtn.disabled = true;
       generateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
 
-      try {
-        // Save or update client
-        let clientId = selectedClientId;
-        if (!clientId) {
-          const newClient = await saveClient({
-            name: clientName,
-            address: clientAddress
-          });
-          clientId = newClient.id;
-          clientsData.push(newClient);
+       try {
+        const { data: lastQuote, error: fetchError } = await supabaseClient
+            .from('quotations')
+            .select('quotation_number')
+            .order('quotation_number', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        let nextNumber = 1;
+        if (lastQuote) {
+            const lastNumberStr = lastQuote.quotation_number.split('-').pop();
+            nextNumber = parseInt(lastNumberStr, 10) + 1;
         }
+        
+        const quotationNumber = 'DCP-' + new Date().getFullYear() + '-' + String(nextNumber).padStart(5, '0');
 
-        // Save quotation (quotation_number handled by trigger)
-        const quotationData = {
-          client_id: clientId,
-          client_name: clientName,
-          client_address: clientAddress,
-          technician_name: technicianName,
-          product: products[productIndex].name,
-          description: serviceDesc,
-          service_description: serviceDesc, // Populate both for now
-          amount: parseFloat(amount),
-          date: invoiceDate,
-          start_time: startTime,
-          end_time: endTime
-          // product_id is left NULL since not used
-        };
+        const clientName = document.getElementById('clientName').value;
+        const clientAddress = document.getElementById('clientAddress').value;
+        const technicianName = document.getElementById('technicianName').value;
+        const serviceDesc = document.getElementById('serviceDesc').value;
+        const amount = document.getElementById('amount').value;
+        const invoiceDate = document.getElementById('invoiceDate').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
 
-        const { data, error } = await supabaseClient
-          .from('quotations')
-          .insert([quotationData])
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Supabase insert error:', error.message, error.details, error.hint);
-          throw error;
-        }
-
-        // Update preview
         currentQuotationData = {
-          id: data.id,
-          quotation_number: data.quotation_number,
-          client_name: clientName,
-          client_address: clientAddress,
-          technician_name: technicianName,
-          product: products[productIndex].name,
-          description: serviceDesc,
-          amount: amount,
-          date: invoiceDate,
-          start_time: startTime,
-          end_time: endTime
+          quotationNumber, clientName, clientAddress, technicianName,
+          serviceDesc, amount: parseFloat(amount), invoiceDate, startTime, endTime
         };
-
-        document.getElementById('previewQuotationNumber').textContent = data.quotation_number || 'N/A';
-        document.getElementById('previewQuotationId').textContent = data.id;
-        document.getElementById('previewClient').textContent = clientName;
-        document.getElementById('previewTechnician').textContent = technicianName;
-        document.getElementById('previewDate').textContent = invoiceDate;
-        document.getElementById('previewAddress').textContent = clientAddress;
-        document.getElementById('previewAmount').textContent = amount;
-        document.getElementById('previewStart').textContent = startTime;
-        document.getElementById('previewEnd').textContent = endTime;
-        document.getElementById('previewDesc').textContent = serviceDesc;
-        document.getElementById('invoicePreview').style.display = 'block';
+        
+        const { error: insertError } = await supabaseClient
+          .from('quotations')
+          .insert([{
+            quotation_number: quotationNumber,
+            client_id: selectedClientId,
+            client_name: clientName,
+            client_address: clientAddress,
+            technician_name: technicianName,
+            service_description: serviceDesc,
+            amount: parseFloat(amount),
+            service_date: invoiceDate,
+            start_time: startTime,
+            end_time: endTime
+          }]);
+          
+        if (insertError) throw insertError;
 
         showStatus('Quotation generated and saved successfully!', 'success');
+        
+        document.getElementById('previewQuotationId').innerText = quotationNumber;
+        document.getElementById('previewClient').innerText = clientName;
+        document.getElementById('previewAddress').innerText = clientAddress;
+        document.getElementById('previewTechnician').innerText = technicianName;
+        document.getElementById('previewDesc').innerText = serviceDesc;
+        document.getElementById('previewAmount').innerText = parseFloat(amount).toFixed(2);
+        document.getElementById('previewDate').innerText = invoiceDate;
+        document.getElementById('previewStart').innerText = startTime;
+        document.getElementById('previewEnd').innerText = endTime;
+        document.getElementById('invoicePreview').style.display = 'block';
+
         document.getElementById('invoiceForm').reset();
-        document.getElementById('clientSuggestions').style.display = 'none';
-        document.getElementById('updateClientBtn').style.display = 'none';
         selectedClientId = null;
+        document.getElementById('updateClientBtn').style.display = 'none';
+
       } catch (error) {
-        console.error('Error generating quotation:', error.message, error.details || '', error.hint || '');
-        showStatus(`Failed to generate quotation: ${error.message}`, 'danger');
+        showStatus(`Error: ${error.message}`, 'error');
+        console.error("Save error:", error);
       } finally {
         generateBtn.disabled = false;
-        generateBtn.innerHTML = '<i class="bi bi-file-earmark-text"></i> Generate & Save Quotation';
+        generateBtn.textContent = 'Generate & Save Quotation';
       }
     });
+
+    async function loadQuotations() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('quotations')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (error) throw error;
+
+        const quotationsList = document.getElementById('quotationsList');
+        quotationsList.innerHTML = '';
+        if (data.length === 0) {
+          quotationsList.innerHTML = '<p>No quotations found.</p>';
+          return;
+        }
+        data.forEach(quotation => {
+          const quotationElement = document.createElement('div');
+          quotationElement.className = 'history-item';
+          quotationElement.innerHTML = `
+            <h4>${quotation.quotation_number}</h4>
+            <p><strong>Client:</strong> ${quotation.client_name}</p>
+            <p><strong>Technician:</strong> ${quotation.technician_name || 'N/A'}</p>
+            <p><strong>Amount:</strong> LKR ${quotation.amount}</p>
+            <p><strong>Date:</strong> ${quotation.service_date}</p>
+          `;
+          quotationsList.appendChild(quotationElement);
+        });
+      } catch (error) {
+        showStatus('Error loading quotations: ' + error.message, 'error');
+      }
+    }
+
+    function downloadPDF() {
+      if (!currentQuotationData) {
+        alert('No quotation data available.');
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const { quotationNumber, clientName, clientAddress, technicianName, serviceDesc, amount, invoiceDate, startTime, endTime } = currentQuotationData;
+      const primaryColor = [46, 125, 50], textColor = [33, 33, 33];
+      
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 40, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Debug Computer Peripherals', 20, 25);
+
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFontSize(20);
+      doc.text('SERVICE QUOTATION', 20, 60);
+
+      doc.setFontSize(11);
+      doc.text('Quotation No: ' + quotationNumber, 20, 70);
+      doc.text('Date: ' + new Date().toLocaleDateString(), 140, 70);
+      doc.text('Technician: ' + technicianName, 140, 78);
+
+      doc.setFontSize(10);
+      doc.text('CLIENT:', 20, 85);
+      doc.text(clientName, 20, 92);
+      const addressLines = doc.splitTextToSize(clientAddress, 90);
+      doc.text(addressLines, 20, 98);
+
+      let yPosition = 125;
+      doc.setFontSize(12);
+      doc.text('DESCRIPTION', 20, yPosition);
+      doc.text('AMOUNT (LKR)', 170, yPosition, {align: 'right'});
+      yPosition += 5;
+      doc.setLineWidth(0.5);
+      doc.line(20, yPosition, 190, yPosition);
+
+      yPosition += 10;
+      doc.setFont('helvetica', 'normal');
+      const descLines = doc.splitTextToSize(serviceDesc, 130);
+      doc.text(descLines, 20, yPosition);
+      doc.text(amount.toFixed(2), 190, yPosition, {align: 'right'});
+      
+      yPosition += descLines.length * 5 + 10;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Service Date: ' + invoiceDate, 20, yPosition);
+      doc.text('Service Time: ' + startTime + ' - ' + endTime, 20, yPosition + 7);
+      
+      doc.line(120, yPosition + 15, 190, yPosition + 15);
+      doc.text('TOTAL', 120, yPosition + 22);
+      doc.text('LKR ' + amount.toFixed(2), 190, yPosition + 22, {align: 'right'});
+
+      const footerY = doc.internal.pageSize.height - 40;
+      doc.setFontSize(9);
+      doc.text('Prepared by: ________________________', 20, footerY);
+      doc.text(technicianName, 45, footerY - 1);
+      doc.text('Client Signature: ________________________', 110, footerY);
+      
+      doc.save('Service-Quotation-' + quotationNumber + '.pdf');
+    }
+
 
     // Initialize Supabase
     initializeSupabaseInternal(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
