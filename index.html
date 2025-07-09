@@ -2,487 +2,302 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Debug Computer Peripherals - Service Quotation Generator</title>
-  
-  <!-- Bootstrap CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
-  <!-- PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
     * {
+      box-sizing: border-box;
       font-family: 'Poppins', sans-serif;
     }
-    
     body {
-      background: linear-gradient(135deg, #4CAF50, #81C784);
-      min-height: 100vh;
-      padding: 20px 0;
+      background: linear-gradient(to right, #4CAF50, #81C784);
+      color: #333;
+      margin: 0;
+      padding: 40px;
     }
-    
-    .main-container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      max-width: 700px;
+      margin: 0 auto;
     }
-    
-    .header-section {
-      background: linear-gradient(135deg, #2E7D32, #4CAF50);
-      color: white;
-      padding: 2rem 0;
+    h1 {
       text-align: center;
-    }
-    
-    .header-section h1 {
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      font-size: 2.5rem;
-    }
-    
-    .header-section p {
-      opacity: 0.9;
-      font-size: 1.1rem;
-      margin-bottom: 0;
-    }
-    
-    .form-section {
-      padding: 2rem;
-    }
-    
-    .form-label {
-      font-weight: 600;
       color: #2E7D32;
-      margin-bottom: 0.5rem;
+      margin-bottom: 30px;
     }
-    
-    .form-control, .form-select {
-      border-radius: 10px;
-      border: 2px solid #e9ecef;
-      padding: 0.75rem;
-      transition: all 0.3s ease;
+    label {
+      font-weight: 500;
+      margin-bottom: 6px;
+      display: block;
     }
-    
-    .form-control:focus, .form-select:focus {
-      border-color: #4CAF50;
-      box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
     }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    button {
+      background-color: #4CAF50;
+      color: white;
       border: none;
-      border-radius: 10px;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-right: 10px;
+      margin-top: 5px;
     }
-    
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #388E3C, #4CAF50);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    button:hover {
+      background-color: #388E3C;
     }
-    
-    .btn-info {
-      background: linear-gradient(135deg, #2196F3, #42A5F5);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
     }
-    
-    .btn-info:hover {
-      background: linear-gradient(135deg, #1976D2, #2196F3);
-      transform: translateY(-2px);
-    }
-    
-    .btn-warning {
-      background: linear-gradient(135deg, #FF9800, #FFB74D);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .btn-success {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
     .client-search-container {
       position: relative;
     }
-    
     .client-suggestions {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
       background: white;
-      border: 1px solid #dee2e6;
+      border: 1px solid #ccc;
       border-top: none;
-      border-radius: 0 0 10px 10px;
+      border-radius: 0 0 8px 8px;
       max-height: 200px;
       overflow-y: auto;
       z-index: 1000;
       display: none;
     }
-    
     .client-suggestion {
-      padding: 0.75rem;
+      padding: 10px;
       cursor: pointer;
-      border-bottom: 1px solid #f8f9fa;
-      transition: background-color 0.2s ease;
+      border-bottom: 1px solid #eee;
     }
-    
     .client-suggestion:hover {
-      background-color: #f8f9fa;
+      background-color: #f5f5f5;
     }
-    
     .client-suggestion:last-child {
       border-bottom: none;
     }
-    
+    .client-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .client-buttons button {
+      flex: 1;
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+    .new-client-btn {
+      background-color: #2196F3;
+    }
+    .new-client-btn:hover {
+      background-color: #1976D2;
+    }
     .invoice-preview {
-      background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
-      border: 2px solid #C8E6C9;
-      border-radius: 15px;
-      padding: 2rem;
-      margin-top: 2rem;
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f1f8e9;
+      border: 1px solid #c5e1a5;
     }
-    
-    .invoice-preview h3 {
-      color: #2E7D32;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-    }
-    
     .quotation-history {
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 15px;
-      padding: 1.5rem;
-      margin-top: 2rem;
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
     }
-    
     .history-item {
+      padding: 15px;
+      margin-bottom: 10px;
       background: white;
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid #e9ecef;
-      transition: transform 0.2s ease;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
     }
-    
-    .history-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .history-item h5 {
+    .history-item h4 {
+      margin: 0 0 10px 0;
       color: #2E7D32;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
     }
-    
-    .badge-custom {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.9rem;
+    .history-item p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .toggle-section {
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-section:hover {
+      background-color: #f0f8ff;
+    }
+    .status-message {
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: center;
       font-weight: 500;
+      display: none;
     }
-    
-    .card-custom {
-      border: none;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
     }
-    
-    .card-header-custom {
-      background: linear-gradient(135deg, #2E7D32, #4CAF50);
-      color: white;
-      border-radius: 15px 15px 0 0 !important;
-      padding: 1rem 1.5rem;
-      border: none;
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
     }
-    
-    .input-group-text {
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: 10px 0 0 10px;
+    .warning {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
     }
-    
-    .form-floating .form-control {
-      border-radius: 10px;
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
     }
-    
-    .alert-custom {
-      border: none;
-      border-radius: 10px;
-      font-weight: 500;
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 500px;
     }
-    
-    @media (max-width: 768px) {
-      .header-section h1 {
-        font-size: 2rem;
-      }
-      
-      .form-section {
-        padding: 1rem;
-      }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: black;
     }
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row justify-content-center">
-      <div class="col-12 col-lg-10 col-xl-8">
-        <div class="main-container">
-          <!-- Header Section -->
-          <div class="header-section">
-            <h1><i class="bi bi-pc-display-horizontal"></i> Debug Computer Peripherals</h1>
-            <p>Professional Service Quotation Generator</p>
-          </div>
+  <div class="container">
+    <h1>Debug Computer Peripherals</h1>
 
-          <!-- Form Section -->
-          <div class="form-section">
-            <form id="invoiceForm">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-person-circle"></i> Client Name
-                  </label>
-                  <div class="client-search-container">
-                    <input type="text" class="form-control" id="clientName" placeholder="Search existing client or enter new name" required>
-                    <div id="clientSuggestions" class="client-suggestions"></div>
-                  </div>
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-person-badge"></i> Technician Name
-                  </label>
-                  <input type="text" class="form-control" id="technicianName" required>
-                </div>
-              </div>
+    <form id="invoiceForm">
+      <label>Client Name</label>
+      <div class="client-search-container">
+        <input type="text" id="clientName" placeholder="Search existing client or enter new name" required>
+        <div id="clientSuggestions" class="client-suggestions"></div>
+      </div>
+      
+      <div class="client-buttons">
+        <button type="button" id="newClientBtn" class="new-client-btn">Add New Client</button>
+        <button type="button" id="updateClientBtn" style="display: none;">Update Client Info</button>
+      </div>
 
-              <div class="row mb-3">
-                <div class="col-12">
-                  <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-info btn-sm" id="newClientBtn">
-                      <i class="bi bi-person-plus"></i> Add New Client
-                    </button>
-                    <button type="button" class="btn btn-warning btn-sm" id="updateClientBtn" style="display: none;">
-                      <i class="bi bi-person-gear"></i> Update Client Info
-                    </button>
-                  </div>
-                </div>
-              </div>
+      <label>Client Address</label>
+      <textarea id="clientAddress" placeholder="Enter client address" required></textarea>
+      
+      <label>Technician Name</label>
+      <input type="text" id="technicianName" required>
 
-              <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-geo-alt"></i> Client Address
-                </label>
-                <textarea class="form-control" id="clientAddress" rows="3" placeholder="Enter client address" required></textarea>
-              </div>
+      <label>Select Product</label>
+      <select id="productSelect">
+        <option value="">-- Select Product --</option>
+      </select>
 
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-box-seam"></i> Select Product
-                  </label>
-                  <select class="form-select" id="productSelect">
-                    <option value="">-- Select Product --</option>
-                  </select>
-                </div>
-                
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-currency-dollar"></i> Amount (LKR)
-                  </label>
-                  <div class="input-group">
-                    <span class="input-group-text">LKR</span>
-                    <input type="number" class="form-control" id="amount" required>
-                  </div>
-                </div>
-              </div>
+      <label>Product / Service Description</label>
+      <textarea id="serviceDesc" required></textarea>
 
-              <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-card-text"></i> Product / Service Description
-                </label>
-                <textarea class="form-control" id="serviceDesc" rows="3" required></textarea>
-              </div>
+      <label>Amount (LKR)</label>
+      <input type="number" id="amount" required>
 
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-calendar-event"></i> Date
-                  </label>
-                  <input type="date" class="form-control" id="invoiceDate" required>
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-clock"></i> Start Time
-                  </label>
-                  <input type="time" class="form-control" id="startTime" required>
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-clock-history"></i> End Time
-                  </label>
-                  <input type="time" class="form-control" id="endTime" required>
-                </div>
-              </div>
+      <label>Date</label>
+      <input type="date" id="invoiceDate" required>
 
-              <div class="text-center mt-4">
-                <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
-                  <i class="bi bi-file-earmark-text"></i> Generate & Save Quotation
-                </button>
-              </div>
-            </form>
-            
-            <!-- Status Messages -->
-            <div id="statusMessage" class="alert alert-custom mt-3" style="display: none;"></div>
+      <label>Start Time</label>
+      <input type="time" id="startTime" required>
 
-            <!-- Invoice Preview -->
-            <div id="invoicePreview" class="invoice-preview" style="display:none">
-              <h3><i class="bi bi-file-earmark-check"></i> Service Quotation Preview</h3>
-              <div class="row">
-                <div class="col-md-6">
-                  <p><strong>Quotation ID:</strong> <span id="previewQuotationId" class="badge-custom"></span></p>
-                  <p><strong>Client:</strong> <span id="previewClient"></span></p>
-                  <p><strong>Technician:</strong> <span id="previewTechnician"></span></p>
-                  <p><strong>Date:</strong> <span id="previewDate"></span></p>
-                </div>
-                <div class="col-md-6">
-                  <p><strong>Address:</strong> <span id="previewAddress"></span></p>
-                  <p><strong>Amount:</strong> <span class="text-success fw-bold">LKR <span id="previewAmount"></span></span></p>
-                  <p><strong>Time:</strong> <span id="previewStart"></span> - <span id="previewEnd"></span></p>
-                </div>
-              </div>
-              <p><strong>Description:</strong> <span id="previewDesc"></span></p>
-              
-              <div class="mt-3 d-flex gap-2 flex-wrap">
-                <button class="btn btn-success" onclick="downloadPDF()">
-                  <i class="bi bi-file-earmark-pdf"></i> Download PDF
-                </button>
-                <button class="btn btn-info" onclick="window.print()">
-                  <i class="bi bi-printer"></i> Print Quotation
-                </button>
-                <button class="btn btn-warning" onclick="shareQuotation()">
-                  <i class="bi bi-share"></i> Share Quotation
-                </button>
-              </div>
-            </div>
+      <label>End Time</label>
+      <input type="time" id="endTime" required>
 
-            <!-- Password Protection for Quotation History -->
-            <div class="card card-custom mt-4" id="historyAuth">
-              <div class="card-header card-header-custom">
-                <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Quotation History Access</h5>
-              </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-8">
-                    <input type="password" class="form-control" id="historyPassword" placeholder="Enter password to view history">
-                  </div>
-                  <div class="col-md-4">
-                    <button class="btn btn-primary w-100" onclick="checkHistoryPassword()">
-                      <i class="bi bi-unlock"></i> Unlock History
-                    </button>
-                  </div>
-                </div>
-                <div id="historyAuthMsg" class="alert alert-custom mt-3" style="display: none;"></div>
-              </div>
-            </div>
+      <button type="submit" id="generateBtn">Generate & Save Quotation</button>
+    </form>
+    
+    <div id="statusMessage" class="status-message"></div>
 
-            <!-- Actual History Section -->
-            <div class="card card-custom mt-4" style="display: none;" id="historySection">
-              <div class="card-header card-header-custom">
-                <h5 class="mb-0 toggle-section" onclick="toggleHistory()" style="cursor: pointer;">
-                  <i class="bi bi-clock-history"></i> Quotation History 
-                  <small class="opacity-75">(Click to expand)</small>
-                </h5>
-              </div>
-              <div class="card-body" id="historyContent" style="display: none;">
-                <button class="btn btn-primary mb-3" onclick="loadQuotations()">
-                  <i class="bi bi-arrow-clockwise"></i> Load All Quotations
-                </button>
-                <div id="quotationsList"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div id="invoicePreview" class="invoice-preview" style="display:none">
+      <h2>Service Quotation - Debug Computer Peripherals</h2>
+      <p><strong>Quotation ID:</strong> <span id="previewQuotationId"></span></p>
+      <p><strong>Client:</strong> <span id="previewClient"></span></p>
+      <p><strong>Address:</strong> <span id="previewAddress"></span></p>
+      <p><strong>Technician:</strong> <span id="previewTechnician"></span></p>
+      <p><strong>Description:</strong> <span id="previewDesc"></span></p>
+      <p><strong>Amount:</strong> LKR <span id="previewAmount"></span></p>
+      <p><strong>Date:</strong> <span id="previewDate"></span></p>
+      <p><strong>Time:</strong> <span id="previewStart"></span> - <span id="previewEnd"></span></p>
+      <button onclick="downloadPDF()">Download PDF</button>
+      <button onclick="window.print()">Print Quotation</button>
+      <button onclick="shareQuotation()">Share Quotation</button>
+    </div>
+
+    <!-- Password Protection for Quotation History -->
+    <div id="historyAuth" class="quotation-history">
+      <h3>🔐 Quotation History Access</h3>
+      <input type="password" id="historyPassword" placeholder="Enter password">
+      <button onclick="checkHistoryPassword()">Unlock History</button>
+      <p id="historyAuthMsg" class="status-message warning" style="display: none;"></p>
+    </div>
+
+    <!-- Actual History Section (hidden until password is correct) -->
+    <div class="quotation-history" style="display: none;" id="historySection">
+      <h3 class="toggle-section" onclick="toggleHistory()">📋 Quotation History (Click to expand)</h3>
+      <div id="historyContent" style="display: none;">
+        <button onclick="loadQuotations()">Load All Quotations</button>
+        <div id="quotationsList"></div>
       </div>
     </div>
   </div>
 
   <!-- Client Modal -->
-  <div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header" style="background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white;">
-          <h5 class="modal-title" id="modalTitle">
-            <i class="bi bi-person-plus"></i> Add New Client
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="clientForm">
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">
-                  <i class="bi bi-person"></i> Client Name
-                </label>
-                <input type="text" class="form-control" id="modalClientName" required>
-              </div>
-              
-              <div class="col-md-6 mb-3">
-                <label class="form-label">
-                  <i class="bi bi-telephone"></i> Phone Number (Optional)
-                </label>
-                <input type="tel" class="form-control" id="modalClientPhone">
-              </div>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label">
-                <i class="bi bi-envelope"></i> Email (Optional)
-              </label>
-              <input type="email" class="form-control" id="modalClientEmail">
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label">
-                <i class="bi bi-geo-alt"></i> Client Address
-              </label>
-              <textarea class="form-control" id="modalClientAddress" rows="3" required></textarea>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="saveClientBtn" form="clientForm">
-            <i class="bi bi-save"></i> Save Client
-          </button>
-        </div>
-      </div>
+  <div id="clientModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle">Add New Client</h2>
+      <form id="clientForm">
+        <label>Client Name</label>
+        <input type="text" id="modalClientName" required>
+        
+        <label>Client Address</label>
+        <textarea id="modalClientAddress" required></textarea>
+        
+        <label>Phone Number (Optional)</label>
+        <input type="tel" id="modalClientPhone">
+        
+        <label>Email (Optional)</label>
+        <input type="email" id="modalClientEmail">
+        
+        <button type="submit" id="saveClientBtn">Save Client</button>
+      </form>
     </div>
   </div>
-
-  <!-- Bootstrap JS Bundle -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
   <script>
     // --- IMPORTANT ---
@@ -538,7 +353,7 @@
         loadQuotations();
       } else {
         msg.textContent = '❌ Incorrect password. Please try again.';
-        msg.className = 'alert alert-danger alert-custom';
+        msg.className = 'status-message error';
         msg.style.display = 'block';
       }
     }
@@ -546,7 +361,7 @@
     function showStatus(message, type = 'success') {
       const statusElement = document.getElementById('statusMessage');
       statusElement.textContent = message;
-      statusElement.className = `alert alert-${type} alert-custom`;
+      statusElement.className = `status-message ${type}`;
       statusElement.style.display = 'block';
       setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
     }
@@ -588,7 +403,7 @@
         loadClients();
       } catch (error) {
         console.error('Database connection error:', error.message);
-        showStatus('Database connection error. Please check your Supabase credentials.', 'danger');
+        showStatus('Database connection error. Please check your Supabase credentials.', 'error');
       }
     }
 
@@ -669,7 +484,7 @@
         suggestion.className = 'client-suggestion';
         suggestion.innerHTML = `
           <strong>${client.name}</strong><br>
-          <small class="text-muted">${client.address}</small>
+          <small>${client.address}</small>
         `;
         suggestion.addEventListener('click', () => selectClient(client));
         suggestionsDiv.appendChild(suggestion);
@@ -684,7 +499,7 @@
       document.getElementById('clientAddress').value = client.address;
       document.getElementById('clientSuggestions').style.display = 'none';
       document.getElementById('updateClientBtn').style.display = 'inline-block';
-      document.getElementById('newClientBtn').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
+      document.getElementById('newClientBtn').textContent = 'Add New Client';
     }
 
     // Event listeners
@@ -692,7 +507,7 @@
       const searchTerm = this.value;
       selectedClientId = null;
       document.getElementById('updateClientBtn').style.display = 'none';
-      document.getElementById('newClientBtn').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
+      document.getElementById('newClientBtn').textContent = 'Add New Client';
       
       if (searchTerm.length >= 2) {
         const suggestions = filterClients(searchTerm);
@@ -708,17 +523,18 @@
       }
     });
 
-    // Modal functionality using Bootstrap
-    const clientModal = new bootstrap.Modal(document.getElementById('clientModal'));
+    // Modal functionality
+    const modal = document.getElementById('clientModal');
+    const closeBtn = document.querySelector('.close');
 
     document.getElementById('newClientBtn').addEventListener('click', function() {
-      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
+      document.getElementById('modalTitle').textContent = 'Add New Client';
       document.getElementById('modalClientName').value = document.getElementById('clientName').value;
       document.getElementById('modalClientAddress').value = document.getElementById('clientAddress').value;
       document.getElementById('modalClientPhone').value = '';
       document.getElementById('modalClientEmail').value = '';
-      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Save Client';
-      clientModal.show();
+      document.getElementById('saveClientBtn').textContent = 'Save Client';
+      modal.style.display = 'block';
     });
 
     document.getElementById('updateClientBtn').addEventListener('click', function() {
@@ -727,13 +543,23 @@
       const client = clientsData.find(c => c.id === selectedClientId);
       if (!client) return;
       
-      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-gear"></i> Update Client';
+      document.getElementById('modalTitle').textContent = 'Update Client';
       document.getElementById('modalClientName').value = client.name;
       document.getElementById('modalClientAddress').value = client.address;
       document.getElementById('modalClientPhone').value = client.phone || '';
       document.getElementById('modalClientEmail').value = client.email || '';
-      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Update Client';
-      clientModal.show();
+      document.getElementById('saveClientBtn').textContent = 'Update Client';
+      modal.style.display = 'block';
+    });
+
+    closeBtn.addEventListener('click', function() {
+      modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
     });
 
     // Client form submission
@@ -749,7 +575,7 @@
       
       const saveBtn = document.getElementById('saveClientBtn');
       saveBtn.disabled = true;
-      saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+      saveBtn.textContent = 'Saving...';
       
       try {
         let savedClient;
@@ -760,3 +586,235 @@
           savedClient = await saveClient(clientData);
           showStatus('Client saved successfully!', 'success');
         }
+        
+        // Update the form fields
+        document.getElementById('clientName').value = savedClient.name;
+        document.getElementById('clientAddress').value = savedClient.address;
+        selectedClientId = savedClient.id;
+        
+        // Refresh clients data
+        await loadClients();
+        
+        modal.style.display = 'none';
+        document.getElementById('updateClientBtn').style.display = 'inline-block';
+        
+      } catch (error) {
+        showStatus('Error saving client: ' + error.message, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = selectedClientId ? 'Update Client' : 'Save Client';
+      }
+    });
+
+    // Initialize Supabase
+    window.addEventListener('load', function() {
+      const supabaseUrl = window.ENV?.SUPABASE_URL;
+      const supabaseKey = window.ENV?.SUPABASE_ANON_KEY;
+      if (supabaseUrl && supabaseKey) {
+        initializeSupabaseInternal(supabaseUrl, supabaseKey);
+      } else {
+        console.warn("Supabase credentials not found.");
+      }
+    });
+
+    // Quotation form submission
+    document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!supabaseClient) {
+          showStatus('Cannot save. Supabase is not connected.', 'error');
+          return;
+      }
+
+      const generateBtn = document.getElementById('generateBtn');
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
+
+      try {
+        const { data: lastQuote, error: fetchError } = await supabaseClient
+            .from('quotations')
+            .select('quotation_number')
+            .order('quotation_number', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        let nextNumber = 1;
+        if (lastQuote) {
+            const lastNumberStr = lastQuote.quotation_number.split('-').pop();
+            nextNumber = parseInt(lastNumberStr, 10) + 1;
+        }
+        
+        const quotationNumber = 'DCP-' + new Date().getFullYear() + '-' + String(nextNumber).padStart(5, '0');
+
+        const clientName = document.getElementById('clientName').value;
+        const clientAddress = document.getElementById('clientAddress').value;
+        const technicianName = document.getElementById('technicianName').value;
+        const serviceDesc = document.getElementById('serviceDesc').value;
+        const amount = document.getElementById('amount').value;
+        const invoiceDate = document.getElementById('invoiceDate').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+
+        currentQuotationData = {
+          quotationNumber, clientName, clientAddress, technicianName,
+          serviceDesc, amount: parseFloat(amount), invoiceDate, startTime, endTime
+        };
+        
+        const { error: insertError } = await supabaseClient
+          .from('quotations')
+          .insert([{
+            quotation_number: quotationNumber,
+            client_id: selectedClientId,
+            client_name: clientName,
+            client_address: clientAddress,
+            technician_name: technicianName,
+            service_description: serviceDesc,
+            amount: parseFloat(amount),
+            service_date: invoiceDate,
+            start_time: startTime,
+            end_time: endTime
+          }]);
+          
+        if (insertError) throw insertError;
+
+        showStatus('Quotation generated and saved successfully!', 'success');
+        
+        document.getElementById('previewQuotationId').innerText = quotationNumber;
+        document.getElementById('previewClient').innerText = clientName;
+        document.getElementById('previewAddress').innerText = clientAddress;
+        document.getElementById('previewTechnician').innerText = technicianName;
+        document.getElementById('previewDesc').innerText = serviceDesc;
+        document.getElementById('previewAmount').innerText = parseFloat(amount).toFixed(2);
+        document.getElementById('previewDate').innerText = invoiceDate;
+        document.getElementById('previewStart').innerText = startTime;
+        document.getElementById('previewEnd').innerText = endTime;
+        document.getElementById('invoicePreview').style.display = 'block';
+
+        document.getElementById('invoiceForm').reset();
+        selectedClientId = null;
+        document.getElementById('updateClientBtn').style.display = 'none';
+
+      } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+        console.error("Save error:", error);
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate & Save Quotation';
+      }
+    });
+
+    async function loadQuotations() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('quotations')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (error) throw error;
+
+        const quotationsList = document.getElementById('quotationsList');
+        quotationsList.innerHTML = '';
+        if (data.length === 0) {
+          quotationsList.innerHTML = '<p>No quotations found.</p>';
+          return;
+        }
+        data.forEach(quotation => {
+          const quotationElement = document.createElement('div');
+          quotationElement.className = 'history-item';
+          quotationElement.innerHTML = `
+            <h4>${quotation.quotation_number}</h4>
+            <p><strong>Client:</strong> ${quotation.client_name}</p>
+            <p><strong>Technician:</strong> ${quotation.technician_name || 'N/A'}</p>
+            <p><strong>Amount:</strong> LKR ${quotation.amount}</p>
+            <p><strong>Date:</strong> ${quotation.service_date}</p>
+          `;
+          quotationsList.appendChild(quotationElement);
+        });
+      } catch (error) {
+        showStatus('Error loading quotations: ' + error.message, 'error');
+      }
+    }
+
+    function downloadPDF() {
+      if (!currentQuotationData) {
+        alert('No quotation data available.');
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const { quotationNumber, clientName, clientAddress, technicianName, serviceDesc, amount, invoiceDate, startTime, endTime } = currentQuotationData;
+      const primaryColor = [46, 125, 50], textColor = [33, 33, 33];
+      
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 40, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Debug Computer Peripherals', 20, 25);
+
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFontSize(20);
+      doc.text('SERVICE QUOTATION', 20, 60);
+
+      doc.setFontSize(11);
+      doc.text('Quotation No: ' + quotationNumber, 20, 70);
+      doc.text('Date: ' + new Date().toLocaleDateString(), 140, 70);
+      doc.text('Technician: ' + technicianName, 140, 78);
+
+      doc.setFontSize(10);
+      doc.text('CLIENT:', 20, 85);
+      doc.text(clientName, 20, 92);
+      const addressLines = doc.splitTextToSize(clientAddress, 90);
+      doc.text(addressLines, 20, 98);
+
+      let yPosition = 125;
+      doc.setFontSize(12);
+      doc.text('DESCRIPTION', 20, yPosition);
+      doc.text('AMOUNT (LKR)', 170, yPosition, {align: 'right'});
+      yPosition += 5;
+      doc.setLineWidth(0.5);
+      doc.line(20, yPosition, 190, yPosition);
+
+      yPosition += 10;
+      doc.setFont('helvetica', 'normal');
+      const descLines = doc.splitTextToSize(serviceDesc, 130);
+      doc.text(descLines, 20, yPosition);
+      doc.text(amount.toFixed(2), 190, yPosition, {align: 'right'});
+      
+      yPosition += descLines.length * 5 + 10;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Service Date: ' + invoiceDate, 20, yPosition);
+      doc.text('Service Time: ' + startTime + ' - ' + endTime, 20, yPosition + 7);
+      
+      doc.line(120, yPosition + 15, 190, yPosition + 15);
+      doc.text('TOTAL', 120, yPosition + 22);
+      doc.text('LKR ' + amount.toFixed(2), 190, yPosition + 22, {align: 'right'});
+
+      const footerY = doc.internal.pageSize.height - 40;
+      doc.setFontSize(9);
+      doc.text('Prepared by: ________________________', 20, footerY);
+      doc.text(technicianName, 45, footerY - 1);
+      doc.text('Client Signature: ________________________', 110, footerY);
+      
+      doc.save('Service-Quotation-' + quotationNumber + '.pdf');
+    }
+
+    async function shareQuotation() {
+      if (!currentQuotationData) return;
+      const shareData = {
+        title: 'Service Quotation',
+        text: `Quotation from Debug Computer Peripherals:\n` +
+              `Client: ${currentQuotationData.clientName}\n` +
+              `Description: ${currentQuotationData.serviceDesc}\n` +
+              `Amount: LKR ${currentQuotationData.amount}\n`,
+        url: window.location.href
+      };
+      if (navigator.share) await navigator.share(shareData);
+      else alert('Sharing is not supported on this browser.');
+    }
+  </script>
+</body>
+</html
