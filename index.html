@@ -525,7 +525,7 @@
       }
     });
 
-    // Password for history section (in production, use hashed password stored in Supabase)
+    // Password for history section
     const HISTORY_PASSWORD = 'debug123';
 
     function showStatus(message, type = 'success') {
@@ -577,12 +577,6 @@
         console.error('Database connection error:', error.message);
         showStatus('Database connection error. Please check your Supabase credentials.', 'danger');
       }
-    }
-
-    // Generate quotation number based on ID and year
-    function generateQuotationNumber(id) {
-      const year = new Date().getFullYear();
-      return `Q-${year}-${String(id).padStart(3, '0')}`;
     }
 
     // Client management functions
@@ -710,10 +704,7 @@
       try {
         const { data, error } = await supabaseClient
           .from('quotations')
-          .select(`
-            *,
-            clients (name, address)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -732,11 +723,11 @@
           item.innerHTML = `
             <h5>Quotation #${quotation.quotation_number}</h5>
             <p><strong>ID:</strong> ${quotation.id}</p>
-            <p><strong>Client:</strong> ${quotation.clients.name}</p>
+            <p><strong>Client:</strong> ${quotation.client_name}</p>
             <p><strong>Technician:</strong> ${quotation.technician_name}</p>
             <p><strong>Amount:</strong> LKR ${quotation.amount}</p>
-            <p><strong>Date:</strong> ${quotation.date}</p>
-            <p><strong>Description:</strong> ${quotation.description}</p>
+            <p><strong>Date:</strong> ${quotation.service_date}</p>
+            <p><strong>Description:</strong> ${quotation.service_description}</p>
             <button class="btn btn-info btn-sm" onclick="viewQuotation('${quotation.id}')">
               <i class="bi bi-eye"></i> View
             </button>
@@ -753,420 +744,24 @@
       try {
         const { data, error } = await supabaseClient
           .from('quotations')
-          .select(`
-            *,
-            clients (name, address)
-          `)
+          .select('*')
           .eq('id', quotationId)
           .single();
 
         if (error) throw error;
 
         currentQuotationData = {
-          id: data.id,
-          quotation_number: data.quotation_number,
-          client_name: data.clients.name,
-          client_address: data.clients.address,
-          technician_name: data.technician_name,
-          product: data.product,
-          description: data.description,
+          quotationNumber: data.quotation_number,
+          clientName: data.client_name,
+          clientAddress: data.client_address,
+          technicianName: data.technician_name,
+          serviceDesc: data.service_description,
           amount: data.amount,
-          date: data.date,
-          start_time: data.start_time,
-          end_time: data.end_time
+          invoiceDate: data.service_date,
+          startTime: data.start_time,
+          endTime: data.end_time
         };
 
         // Update preview
         document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
-        document.getElementById('previewQuotationId').textContent = data.id;
-        document.getElementById('previewClient').textContent = data.clients.name;
-        document.getElementById('previewTechnician').textContent = data.technician_name;
-        document.getElementById('previewDate').textContent = data.date;
-        document.getElementById('previewAddress').textContent = data.clients.address;
-        document.getElementById('previewAmount').textContent = data.amount;
-        document.getElementById('previewStart').textContent = data.start_time;
-        document.getElementById('previewEnd').textContent = data.end_time;
-        document.getElementById('previewDesc').textContent = data.description;
-        document.getElementById('invoicePreview').style.display = 'block';
-      } catch (error) {
-        console.error('Error viewing quotation:', error.message);
-        showStatus('Failed to load quotation details.', 'danger');
-      }
-    }
-
-    async function downloadPDF() {
-      if (!currentQuotationData) {
-        showStatus('No quotation data available to download.', 'danger');
-        return;
-      }
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      // Add company header
-      doc.setFontSize(20);
-      doc.setTextColor(46, 125, 50); // Green color
-      doc.text('Debug Computer Peripherals', 20, 20);
-      doc.setFontSize(12);
-      doc.setTextColor(100);
-      doc.text('Service Quotation', 20, 30);
-
-      // Quotation details
-      doc.setFontSize(10);
-      doc.text(`Quotation Number: ${currentQuotationData.quotation_number}`, 20, 50);
-      doc.text(`Quotation ID: ${currentQuotationData.id}`, 20, 60);
-      doc.text(`Client: ${currentQuotationData.client_name}`, 20, 70);
-      doc.text(`Address: ${currentQuotationData.client_address}`, 20, 80);
-      doc.text(`Technician: ${currentQuotationData.technician_name}`, 20, 90);
-      doc.text(`Date: ${currentQuotationData.date}`, 20, 100);
-      doc.text(`Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}`, 20, 110);
-      doc.text(`Product: ${currentQuotationData.product}`, 20, 120);
-      doc.text(`Description: ${currentQuotationData.description}`, 20, 130, { maxWidth: 160 });
-      doc.setTextColor(0, 128, 0);
-      doc.text(`Amount: LKR ${currentQuotationData.amount}`, 20, 150);
-
-      // Save PDF
-      doc.save(`Quotation_${currentQuotationData.quotation_number}.pdf`);
-    }
-
-    function shareQuotation() {
-      if (!currentQuotationData) {
-        showStatus('No quotation data available to share.', 'danger');
-        return;
-      }
-
-      const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
-      const body = `
-Dear ${currentQuotationData.client_name},
-
-Please find your service quotation details below:
-
-Quotation Number: ${currentQuotationData.quotation_number}
-Quotation ID: ${currentQuotationData.id}
-Date: ${currentQuotationData.date}
-Technician: ${currentQuotationData.technician_name}
-Address: ${currentQuotationData.client_address}
-Product: ${currentQuotationData.product}
-Description: ${currentQuotationData.description}
-Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}
-Amount: LKR ${currentQuotationData.amount}
-
-Best regards,
-Debug Computer Peripherals
-      `;
-
-      const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailtoLink;
-    }
-
-    // Event listeners
-    document.getElementById('clientName').addEventListener('input', function() {
-      const searchTerm = this.value;
-      selectedClientId = null;
-      document.getElementById('updateClientBtn').style.display = 'none';
-      document.getElementById('newClientBtn').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
-      
-      if (searchTerm.length >= 2) {
-        const suggestions = filterClients(searchTerm);
-        showClientSuggestions(suggestions);
-      } else {
-        document.getElementById('clientSuggestions').style.display = 'none';
-      }
-    });
-
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.client-search-container')) {
-        document.getElementById('clientSuggestions').style.display = 'none';
-      }
-    });
-
-    // Modal functionality
-    const clientModal = new bootstrap.Modal(document.getElementById('clientModal'));
-
-    document.getElementById('newClientBtn').addEventListener('click', function() {
-      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
-      document.getElementById('modalClientName').value = document.getElementById('clientName').value;
-      document.getElementById('modalClientAddress').value = document.getElementById('clientAddress').value;
-      document.getElementById('modalClientPhone').value = '';
-      document.getElementById('modalClientEmail').value = '';
-      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Save Client';
-      clientModal.show();
-    });
-
-    document.getElementById('updateClientBtn').addEventListener('click', function() {
-      if (!selectedClientId) return;
-      
-      const client = clientsData.find(c => c.id === selectedClientId);
-      if (!client) return;
-      
-      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-gear"></i> Update Client';
-      document.getElementById('modalClientName').value = client.name;
-      document.getElementById('modalClientAddress').value = client.address;
-      document.getElementById('modalClientPhone').value = client.phone || '';
-      document.getElementById('modalClientEmail').value = client.email || '';
-      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Update Client';
-      clientModal.show();
-    });
-
-    document.getElementById('clientForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const clientData = {
-        name: document.getElementById('modalClientName').value,
-        address: document.getElementById('modalClientAddress').value,
-        phone: document.getElementById('modalClientPhone').value || null,
-        email: document.getElementById('modalClientEmail').value || null
-      };
-
-      // Basic validation
-      if (!clientData.name || !clientData.address) {
-        showStatus('Client name and address are required.', 'danger');
-        return;
-      }
-
-      if (clientData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientData.email)) {
-        showStatus('Invalid email format.', 'danger');
-        return;
-      }
-
-      const saveBtn = document.getElementById('saveClientBtn');
-      saveBtn.disabled = true;
-      saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
-      
-      try {
-        let savedClient;
-        if (selectedClientId) {
-          savedClient = await updateClient(selectedClientId, clientData);
-          showStatus('Client updated successfully!', 'success');
-          clientsData = clientsData.map(c => c.id === selectedClientId ? savedClient : c);
-        } else {
-          savedClient = await saveClient(clientData);
-          showStatus('Client saved successfully!', 'success');
-          clientsData.push(savedClient);
-        }
-
-        document.getElementById('clientName').value = savedClient.name;
-        document.getElementById('clientAddress').value = savedClient.address;
-        selectedClientId = savedClient.id;
-        document.getElementById('updateClientBtn').style.display = 'inline-block';
-        clientModal.hide();
-      } catch (error) {
-        // Error handling already done in saveClient/updateClient
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = selectedClientId ? '<i class="bi bi-save"></i> Update Client' : '<i class="bi bi-save"></i> Save Client';
-      }
-    });
-
-    // Invoice form submission
-    document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      // Validate inputs
-      const clientName = document.getElementById('clientName').value;
-      const technicianName = document.getElementById('technicianName').value;
-      const clientAddress = document.getElementById('clientAddress').value;
-      const productIndex = document.getElementById('productSelect').value;
-      const amount = document.getElementById('amount').value;
-      const serviceDesc = document.getElementById('serviceDesc').value;
-      const invoiceDate = document.getElementById('invoiceDate').value;
-      const startTime = document.getElementById('startTime').value;
-      const endTime = document.getElementById('endTime').value;
-
-      if (!clientName || !technicianName || !clientAddress || !productIndex || !amount || !serviceDesc || !invoiceDate || !startTime || !endTime) {
-        showStatus('Please fill all required fields.', 'danger');
-        return;
-      }
-
-      if (parseFloat(amount) <= 0) {
-        showStatus('Amount must be a positive number.', 'danger');
-        return;
-      }
-
-      if (startTime >= endTime) {
-        showStatus('End time must be after start time.', 'danger');
-        return;
-      }
-
-      const generateBtn = document.getElementById('generateBtn');
-      generateBtn.disabled = true;
-      generateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
-
-       try {
-        const { data: lastQuote, error: fetchError } = await supabaseClient
-            .from('quotations')
-            .select('quotation_number')
-            .order('quotation_number', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        if (fetchError) throw fetchError;
-
-        let nextNumber = 1;
-        if (lastQuote) {
-            const lastNumberStr = lastQuote.quotation_number.split('-').pop();
-            nextNumber = parseInt(lastNumberStr, 10) + 1;
-        }
-        
-        const quotationNumber = 'DCP-' + new Date().getFullYear() + '-' + String(nextNumber).padStart(5, '0');
-
-        const clientName = document.getElementById('clientName').value;
-        const clientAddress = document.getElementById('clientAddress').value;
-        const technicianName = document.getElementById('technicianName').value;
-        const serviceDesc = document.getElementById('serviceDesc').value;
-        const amount = document.getElementById('amount').value;
-        const invoiceDate = document.getElementById('invoiceDate').value;
-        const startTime = document.getElementById('startTime').value;
-        const endTime = document.getElementById('endTime').value;
-
-        currentQuotationData = {
-          quotationNumber, clientName, clientAddress, technicianName,
-          serviceDesc, amount: parseFloat(amount), invoiceDate, startTime, endTime
-        };
-        
-        const { error: insertError } = await supabaseClient
-          .from('quotations')
-          .insert([{
-            quotation_number: quotationNumber,
-            client_id: selectedClientId,
-            client_name: clientName,
-            client_address: clientAddress,
-            technician_name: technicianName,
-            service_description: serviceDesc,
-            amount: parseFloat(amount),
-            service_date: invoiceDate,
-            start_time: startTime,
-            end_time: endTime
-          }]);
-          
-        if (insertError) throw insertError;
-
-        showStatus('Quotation generated and saved successfully!', 'success');
-        
-        document.getElementById('previewQuotationId').innerText = quotationNumber;
-        document.getElementById('previewClient').innerText = clientName;
-        document.getElementById('previewAddress').innerText = clientAddress;
-        document.getElementById('previewTechnician').innerText = technicianName;
-        document.getElementById('previewDesc').innerText = serviceDesc;
-        document.getElementById('previewAmount').innerText = parseFloat(amount).toFixed(2);
-        document.getElementById('previewDate').innerText = invoiceDate;
-        document.getElementById('previewStart').innerText = startTime;
-        document.getElementById('previewEnd').innerText = endTime;
-        document.getElementById('invoicePreview').style.display = 'block';
-
-        document.getElementById('invoiceForm').reset();
-        selectedClientId = null;
-        document.getElementById('updateClientBtn').style.display = 'none';
-
-      } catch (error) {
-        showStatus(`Error: ${error.message}`, 'error');
-        console.error("Save error:", error);
-      } finally {
-        generateBtn.disabled = false;
-        generateBtn.textContent = 'Generate & Save Quotation';
-      }
-    });
-
-    async function loadQuotations() {
-      if (!supabaseClient) return;
-      try {
-        const { data, error } = await supabaseClient
-          .from('quotations')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(10);
-        if (error) throw error;
-
-        const quotationsList = document.getElementById('quotationsList');
-        quotationsList.innerHTML = '';
-        if (data.length === 0) {
-          quotationsList.innerHTML = '<p>No quotations found.</p>';
-          return;
-        }
-        data.forEach(quotation => {
-          const quotationElement = document.createElement('div');
-          quotationElement.className = 'history-item';
-          quotationElement.innerHTML = `
-            <h4>${quotation.quotation_number}</h4>
-            <p><strong>Client:</strong> ${quotation.client_name}</p>
-            <p><strong>Technician:</strong> ${quotation.technician_name || 'N/A'}</p>
-            <p><strong>Amount:</strong> LKR ${quotation.amount}</p>
-            <p><strong>Date:</strong> ${quotation.service_date}</p>
-          `;
-          quotationsList.appendChild(quotationElement);
-        });
-      } catch (error) {
-        showStatus('Error loading quotations: ' + error.message, 'error');
-      }
-    }
-
-    function downloadPDF() {
-      if (!currentQuotationData) {
-        alert('No quotation data available.');
-        return;
-      }
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const { quotationNumber, clientName, clientAddress, technicianName, serviceDesc, amount, invoiceDate, startTime, endTime } = currentQuotationData;
-      const primaryColor = [46, 125, 50], textColor = [33, 33, 33];
-      
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(0, 0, 210, 40, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(24);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Debug Computer Peripherals', 20, 25);
-
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.setFontSize(20);
-      doc.text('SERVICE QUOTATION', 20, 60);
-
-      doc.setFontSize(11);
-      doc.text('Quotation No: ' + quotationNumber, 20, 70);
-      doc.text('Date: ' + new Date().toLocaleDateString(), 140, 70);
-      doc.text('Technician: ' + technicianName, 140, 78);
-
-      doc.setFontSize(10);
-      doc.text('CLIENT:', 20, 85);
-      doc.text(clientName, 20, 92);
-      const addressLines = doc.splitTextToSize(clientAddress, 90);
-      doc.text(addressLines, 20, 98);
-
-      let yPosition = 125;
-      doc.setFontSize(12);
-      doc.text('DESCRIPTION', 20, yPosition);
-      doc.text('AMOUNT (LKR)', 170, yPosition, {align: 'right'});
-      yPosition += 5;
-      doc.setLineWidth(0.5);
-      doc.line(20, yPosition, 190, yPosition);
-
-      yPosition += 10;
-      doc.setFont('helvetica', 'normal');
-      const descLines = doc.splitTextToSize(serviceDesc, 130);
-      doc.text(descLines, 20, yPosition);
-      doc.text(amount.toFixed(2), 190, yPosition, {align: 'right'});
-      
-      yPosition += descLines.length * 5 + 10;
-      doc.setFont('helvetica', 'bold');
-      doc.text('Service Date: ' + invoiceDate, 20, yPosition);
-      doc.text('Service Time: ' + startTime + ' - ' + endTime, 20, yPosition + 7);
-      
-      doc.line(120, yPosition + 15, 190, yPosition + 15);
-      doc.text('TOTAL', 120, yPosition + 22);
-      doc.text('LKR ' + amount.toFixed(2), 190, yPosition + 22, {align: 'right'});
-
-      const footerY = doc.internal.pageSize.height - 40;
-      doc.setFontSize(9);
-      doc.text('Prepared by: ________________________', 20, footerY);
-      doc.text(technicianName, 45, footerY - 1);
-      doc.text('Client Signature: ________________________', 110, footerY);
-      
-      doc.save('Service-Quotation-' + quotationNumber + '.pdf');
-    }
-
-
-    // Initialize Supabase
-    initializeSupabaseInternal(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
-  </script>
-</body>
-</html>
+        document.getElementById('pre
