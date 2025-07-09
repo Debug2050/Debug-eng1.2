@@ -1006,10 +1006,12 @@ Debug Computer Peripherals
           technician_name: technicianName,
           product: products[productIndex].name,
           description: serviceDesc,
+          service_description: serviceDesc, // Populate both for now
           amount: parseFloat(amount),
           date: invoiceDate,
           start_time: startTime,
           end_time: endTime
+          // product_id is left NULL since not used
         };
 
         const { data, error } = await supabaseClient
@@ -1038,7 +1040,7 @@ Debug Computer Peripherals
           end_time: endTime
         };
 
-        document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
+        document.getElementById('previewQuotationNumber').textContent = data.quotation_number || 'N/A';
         document.getElementById('previewQuotationId').textContent = data.id;
         document.getElementById('previewClient').textContent = clientName;
         document.getElementById('previewTechnician').textContent = technicianName;
