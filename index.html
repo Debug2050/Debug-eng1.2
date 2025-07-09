@@ -579,10 +579,24 @@
       }
     }
 
-    // Generate quotation number based on ID and year
-    function generateQuotationNumber(id) {
-      const year = new Date().getFullYear();
-      return `Q-${year}-${String(id).padStart(3, '0')}`;
+    // Generate quotation number based on next ID
+    async function generateQuotationNumber() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('quotations')
+          .select('id')
+          .order('id', { ascending: false })
+          .limit(1);
+        
+        if (error) throw error;
+        
+        const nextId = data.length ? data[0].id + 1 : 1;
+        const year = new Date().getFullYear();
+        return `Q-${year}-${String(nextId).padStart(3, '0')}`;
+      } catch (error) {
+        console.error('Error generating quotation number:', error.message);
+        throw error;
+      }
     }
 
     // Client management functions
@@ -730,7 +744,7 @@
           const item = document.createElement('div');
           item.className = 'history-item';
           item.innerHTML = `
-            <h5>Quotation #${quotation.quotation_number}</h5>
+            <h5>Quotation #${quotation.quotation_number || 'N/A'}</h5>
             <p><strong>ID:</strong> ${quotation.id}</p>
             <p><strong>Client:</strong> ${quotation.clients.name}</p>
             <p><strong>Technician:</strong> ${quotation.technician_name}</p>
@@ -764,7 +778,7 @@
 
         currentQuotationData = {
           id: data.id,
-          quotation_number: data.quotation_number,
+          quotation_number: data.quotation_number || 'N/A',
           client_name: data.clients.name,
           client_address: data.clients.address,
           technician_name: data.technician_name,
@@ -777,7 +791,7 @@
         };
 
         // Update preview
-        document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
+        document.getElementById('previewQuotationNumber').textContent = data.quotation_number || 'N/A';
         document.getElementById('previewQuotationId').textContent = data.id;
         document.getElementById('previewClient').textContent = data.clients.name;
         document.getElementById('previewTechnician').textContent = data.technician_name;
@@ -813,7 +827,7 @@
 
       // Quotation details
       doc.setFontSize(10);
-      doc.text(`Quotation Number: ${currentQuotationData.quotation_number}`, 20, 50);
+      doc.text(`Quotation Number: ${currentQuotationData.quotation_number || 'N/A'}`, 20, 50);
       doc.text(`Quotation ID: ${currentQuotationData.id}`, 20, 60);
       doc.text(`Client: ${currentQuotationData.client_name}`, 20, 70);
       doc.text(`Address: ${currentQuotationData.client_address}`, 20, 80);
@@ -826,7 +840,7 @@
       doc.text(`Amount: LKR ${currentQuotationData.amount}`, 20, 150);
 
       // Save PDF
-      doc.save(`Quotation_${currentQuotationData.quotation_number}.pdf`);
+      doc.save(`Quotation_${currentQuotationData.quotation_number || 'ID-' + currentQuotationData.id}.pdf`);
     }
 
     function shareQuotation() {
@@ -835,13 +849,13 @@
         return;
       }
 
-      const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
+      const subject = `Service Quotation ${currentQuotationData.quotation_number || 'ID#' + currentQuotationData.id} from Debug Computer Peripherals`;
       const body = `
 Dear ${currentQuotationData.client_name},
 
 Please find your service quotation details below:
 
-Quotation Number: ${currentQuotationData.quotation_number}
+Quotation Number: ${currentQuotationData.quotation_number || 'N/A'}
 Quotation ID: ${currentQuotationData.id}
 Date: ${currentQuotationData.date}
 Technician: ${currentQuotationData.technician_name}
@@ -1004,9 +1018,13 @@ Debug Computer Peripherals
           clientsData.push(newClient);
         }
 
-        // Save quotation without quotation_number initially
+        // Generate quotation number
+        const quotationNumber = await generateQuotationNumber();
+
+        // Save quotation with quotation_number
         const quotationData = {
           client_id: clientId,
+          quotation_number: quotationNumber,
           technician_name: technicianName,
           product: products[productIndex].name,
           description: serviceDesc,
@@ -1022,16 +1040,10 @@ Debug Computer Peripherals
           .select()
           .single();
 
-        if (error) throw error;
-
-        // Generate and update quotation_number
-        const quotationNumber = generateQuotationNumber(data.id);
-        const { error: updateError } = await supabaseClient
-          .from('quotations')
-          .update({ quotation_number: quotationNumber })
-          .eq('id', data.id);
-
-        if (updateError) throw updateError;
+        if (error) {
+          console.error('Supabase insert error:', error.message, error.details, error.hint);
+          throw error;
+        }
 
         // Update preview
         currentQuotationData = {
@@ -1053,7 +1065,7 @@ Debug Computer Peripherals
         document.getElementById('previewClient').textContent = clientName;
         document.getElementById('previewTechnician').textContent = technicianName;
         document.getElementById('previewDate').textContent = invoiceDate;
-        document.getElementById('previewAddress').textContent = clientAddress;
+        document.getElementById('previewAddress').value = clientAddress;
         document.getElementById('previewAmount').textContent = amount;
         document.getElementById('previewStart').textContent = startTime;
         document.getElementById('previewEnd').textContent = endTime;
@@ -1066,8 +1078,8 @@ Debug Computer Peripherals
         document.getElementById('updateClientBtn').style.display = 'none';
         selectedClientId = null;
       } catch (error) {
-        console.error('Error generating quotation:', error.message);
-        showStatus('Failed to generate quotation.', 'danger');
+        console.error('Error generating quotation:', error.message, error.details || '', error.hint || '');
+        showStatus(`Failed to generate quotation: ${error.message}`, 'danger');
       } finally {
         generateBtn.disabled = false;
         generateBtn.innerHTML = '<i class="bi bi-file-earmark-text"></i> Generate & Save Quotation';
