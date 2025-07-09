@@ -579,26 +579,6 @@
       }
     }
 
-    // Generate quotation number based on next ID
-    async function generateQuotationNumber() {
-      try {
-        const { data, error } = await supabaseClient
-          .from('quotations')
-          .select('id')
-          .order('id', { ascending: false })
-          .limit(1);
-        
-        if (error) throw error;
-        
-        const nextId = data.length ? data[0].id + 1 : 1;
-        const year = new Date().getFullYear();
-        return `Q-${year}-${String(nextId).padStart(3, '0')}`;
-      } catch (error) {
-        console.error('Error generating quotation number:', error.message);
-        throw error;
-      }
-    }
-
     // Client management functions
     async function loadClients() {
       if (!supabaseClient) return;
@@ -1018,13 +998,9 @@ Debug Computer Peripherals
           clientsData.push(newClient);
         }
 
-        // Generate quotation number
-        const quotationNumber = await generateQuotationNumber();
-
-        // Save quotation with quotation_number
+        // Save quotation (quotation_number handled by trigger)
         const quotationData = {
           client_id: clientId,
-          quotation_number: quotationNumber,
           technician_name: technicianName,
           product: products[productIndex].name,
           description: serviceDesc,
@@ -1048,7 +1024,7 @@ Debug Computer Peripherals
         // Update preview
         currentQuotationData = {
           id: data.id,
-          quotation_number: quotationNumber,
+          quotation_number: data.quotation_number,
           client_name: clientName,
           client_address: clientAddress,
           technician_name: technicianName,
@@ -1060,12 +1036,12 @@ Debug Computer Peripherals
           end_time: endTime
         };
 
-        document.getElementById('previewQuotationNumber').textContent = quotationNumber;
+        document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
         document.getElementById('previewQuotationId').textContent = data.id;
         document.getElementById('previewClient').textContent = clientName;
         document.getElementById('previewTechnician').textContent = technicianName;
         document.getElementById('previewDate').textContent = invoiceDate;
-        document.getElementById('previewAddress').value = clientAddress;
+        document.getElementById('previewAddress').textContent = clientAddress;
         document.getElementById('previewAmount').textContent = amount;
         document.getElementById('previewStart').textContent = startTime;
         document.getElementById('previewEnd').textContent = endTime;
