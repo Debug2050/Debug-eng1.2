@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Debug Computer Peripherals - Service Quotation Generator</title>
+  <title>Debug Computer Peripherals - Service Report Generator</title>
   
   <!-- Bootstrap CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -11,6 +11,8 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
   <!-- PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Signature Pad -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Google Fonts -->
@@ -32,6 +34,8 @@
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       overflow: hidden;
+      max-width: 1200px;
+      margin: 0 auto;
     }
     
     .header-section {
@@ -55,6 +59,21 @@
     
     .form-section {
       padding: 2rem;
+    }
+    
+    .section-header {
+      background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
+      border: 2px solid #C8E6C9;
+      border-radius: 15px;
+      padding: 1rem;
+      margin: 2rem 0 1rem 0;
+      text-align: center;
+    }
+    
+    .section-header h4 {
+      color: #2E7D32;
+      font-weight: 700;
+      margin: 0;
     }
     
     .form-label {
@@ -97,11 +116,6 @@
       font-weight: 600;
     }
     
-    .btn-info:hover {
-      background: linear-gradient(135deg, #1976D2, #2196F3);
-      transform: translateY(-2px);
-    }
-    
     .btn-warning {
       background: linear-gradient(135deg, #FF9800, #FFB74D);
       border: none;
@@ -116,41 +130,30 @@
       font-weight: 600;
     }
     
-    .client-search-container {
-      position: relative;
+    .signature-pad {
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      width: 100%;
+      height: 150px;
     }
     
-    .client-suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #dee2e6;
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
+    .component-checks {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      align-items: center;
     }
     
-    .client-suggestion {
-      padding: 0.75rem;
-      cursor: pointer;
-      border-bottom: 1px solid #f8f9fa;
-      transition: background-color 0.2s ease;
+    .form-check {
+      margin-bottom: 0;
     }
     
-    .client-suggestion:hover {
-      background-color: #f8f9fa;
+    .form-check-input:checked {
+      background-color: #4CAF50;
+      border-color: #4CAF50;
     }
     
-    .client-suggestion:last-child {
-      border-bottom: none;
-    }
-    
-    .invoice-preview {
+    .report-preview {
       background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
       border: 2px solid #C8E6C9;
       border-radius: 15px;
@@ -158,77 +161,22 @@
       margin-top: 2rem;
     }
     
-    .invoice-preview h3 {
+    .report-preview h3 {
       color: #2E7D32;
       font-weight: 700;
       margin-bottom: 1.5rem;
-    }
-    
-    .quotation-history {
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 15px;
-      padding: 1.5rem;
-      margin-top: 2rem;
-    }
-    
-    .history-item {
-      background: white;
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid #e9ecef;
-      transition: transform 0.2s ease;
-    }
-    
-    .history-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .history-item h5 {
-      color: #2E7D32;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-    
-    .badge-custom {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    
-    .card-custom {
-      border: none;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .card-header-custom {
-      background: linear-gradient(135deg, #2E7D32, #4CAF50);
-      color: white;
-      border-radius: 15px 15px 0 0 !important;
-      padding: 1rem 1.5rem;
-      border: none;
-    }
-    
-    .input-group-text {
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: 10px 0 0 10px;
-    }
-    
-    .form-floating .form-control {
-      border-radius: 10px;
     }
     
     .alert-custom {
       border: none;
       border-radius: 10px;
       font-weight: 500;
+    }
+    
+    .voltage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
     }
     
     @media (max-width: 768px) {
@@ -239,116 +187,438 @@
       .form-section {
         padding: 1rem;
       }
+      
+      .component-checks {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-12 col-lg-10 col-xl-8">
+      <div class="col-12">
         <div class="main-container">
           <!-- Header Section -->
           <div class="header-section">
-            <h1><i class="bi bi-pc-display-horizontal"></i> Debug Computer Peripherals</h1>
-            <p>Professional Service Quotation Generator</p>
+            <h1><i class="bi bi-tools"></i> Debug Computer Peripherals</h1>
+            <p>Professional Service Report Generator</p>
           </div>
 
           <!-- Form Section -->
           <div class="form-section">
-            <form id="invoiceForm">
+            <form id="serviceForm">
+              
+              <!-- 1. Job Identification -->
+              <div class="section-header">
+                <h4><i class="bi bi-clipboard-check"></i> Job Identification</h4>
+              </div>
+              
               <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-person-circle"></i> Client Name
+                    <i class="bi bi-hash"></i> Job Number
                   </label>
-                  <div class="client-search-container">
-                    <input type="text" class="form-control" id="clientName" placeholder="Search existing client or enter new name" required>
-                    <div id="clientSuggestions" class="client-suggestions"></div>
-                  </div>
+                  <input type="text" class="form-control" id="jobNumber" required>
                 </div>
                 
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-person-badge"></i> Technician Name
+                    <i class="bi bi-gear"></i> Job Type
                   </label>
-                  <input type="text" class="form-control" id="technicianName" required>
-                </div>
-              </div>
-
-              <div class="row mb-3">
-                <div class="col-12">
-                  <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-info btn-sm" id="newClientBtn">
-                      <i class="bi bi-person-plus"></i> Add New Client
-                    </button>
-                    <button type="button" class="btn btn-warning btn-sm" id="updateClientBtn" style="display: none;">
-                      <i class="bi bi-person-gear"></i> Update Client Info
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-geo-alt"></i> Client Address
-                </label>
-                <textarea class="form-control" id="clientAddress" rows="3" placeholder="Enter client address" required></textarea>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-box-seam"></i> Select Product
-                  </label>
-                  <select class="form-select" id="productSelect">
-                    <option value="">-- Select Product --</option>
+                  <select class="form-select" id="jobType" required>
+                    <option value="">-- Select Job Type --</option>
+                    <option value="Break Down">Break Down</option>
+                    <option value="Service">Service</option>
+                    <option value="Unservice">Unservice</option>
+                    <option value="Inspection">Inspection</option>
+                    <option value="Installation">Installation</option>
+                    <option value="Maintenance">Maintenance</option>
                   </select>
                 </div>
                 
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-receipt"></i> Invoice Number
+                  </label>
+                  <input type="text" class="form-control" id="invoiceNumber" required>
+                </div>
+              </div>
+
+              <!-- 2. Customer Information -->
+              <div class="section-header">
+                <h4><i class="bi bi-person-circle"></i> Customer Information</h4>
+              </div>
+              
+              <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-currency-dollar"></i> Amount (LKR)
+                    <i class="bi bi-building"></i> Customer Name
                   </label>
+                  <input type="text" class="form-control" id="customerName" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-person-badge"></i> Contact Person
+                  </label>
+                  <input type="text" class="form-control" id="contactPerson" required>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-geo-alt"></i> Customer Address
+                  </label>
+                  <textarea class="form-control" id="customerAddress" rows="3" required></textarea>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-telephone"></i> Contact Number
+                  </label>
+                  <input type="tel" class="form-control" id="contactNumber" required>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-calendar-event"></i> Report Date
+                  </label>
+                  <input type="date" class="form-control" id="reportDate" required>
+                </div>
+              </div>
+
+              <!-- 3. UPS & Battery Details -->
+              <div class="section-header">
+                <h4><i class="bi bi-battery-charging"></i> UPS & Battery Details</h4>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-tag"></i> UPS Brand
+                  </label>
+                  <select class="form-select" id="upsBrand">
+                    <option value="">-- Select Brand --</option>
+                    <option value="APC">APC</option>
+                    <option value="Eaton">Eaton</option>
+                    <option value="Schneider Electric">Schneider Electric</option>
+                    <option value="Vertiv">Vertiv</option>
+                    <option value="CyberPower">CyberPower</option>
+                    <option value="Tripp Lite">Tripp Lite</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-cpu"></i> UPS Model
+                  </label>
+                  <input type="text" class="form-control" id="upsModel">
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-upc-scan"></i> UPS Serial Number
+                  </label>
+                  <input type="text" class="form-control" id="upsSerial">
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-lightning"></i> UPS KVA Rating
+                  </label>
+                  <input type="number" class="form-control" id="upsKVA" step="0.1" min="0">
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-power"></i> UPS kW Rating
+                  </label>
+                  <input type="number" class="form-control" id="upsKW" step="0.1" min="0">
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-battery"></i> Battery Make / AH
+                  </label>
+                  <input type="text" class="form-control" id="batteryMakeAH" placeholder="e.g., Exide 100AH">
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-collection"></i> Battery Type / Quantity
+                  </label>
+                  <input type="text" class="form-control" id="batteryTypeQty" placeholder="e.g., Lead Acid / 4 units">
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-calendar-date"></i> Battery Date Set
+                  </label>
+                  <input type="date" class="form-control" id="batteryDateSet">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-file-text"></i> Reference / Preparation Number
+                  </label>
+                  <input type="text" class="form-control" id="referenceNumber">
+                </div>
+              </div>
+
+              <!-- 4. Service Request Details -->
+              <div class="section-header">
+                <h4><i class="bi bi-exclamation-triangle"></i> Service Request Details</h4>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="bi bi-chat-square-text"></i> Fault Reported / Service Requested
+                </label>
+                <textarea class="form-control" id="faultReported" rows="4" placeholder="Describe the fault or service requested..." required></textarea>
+              </div>
+
+              <!-- 5. Technical Readings -->
+              <div class="section-header">
+                <h4><i class="bi bi-speedometer2"></i> Technical Readings</h4>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-12">
+                  <h6 class="text-muted mb-3">Input Voltage Readings</h6>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Input Voltage (L/N)</label>
                   <div class="input-group">
-                    <span class="input-group-text">LKR</span>
-                    <input type="number" class="form-control" id="amount" min="0" step="0.01" required>
+                    <input type="number" class="form-control" id="inputVoltageLN" step="0.1" min="0">
+                    <span class="input-group-text">V</span>
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Input Voltage (L/E)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="inputVoltageLE" step="0.1" min="0">
+                    <span class="input-group-text">V</span>
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Input Voltage (N/E)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="inputVoltageNE" step="0.1" min="0">
+                    <span class="input-group-text">V</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-12">
+                  <h6 class="text-muted mb-3">Output Voltage Readings</h6>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Output Voltage (L/N)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="outputVoltageLN" step="0.1" min="0">
+                    <span class="input-group-text">V</span>
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Output Voltage (L/E)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="outputVoltageLE" step="0.1" min="0">
+                    <span class="input-group-text">V</span>
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Output Voltage (N/E)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="outputVoltageNE" step="0.1" min="0">
+                    <span class="input-group-text">V</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Load Percentage (%)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="loadPercentage" min="0" max="100">
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Load Amperage</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="loadAmperage" step="0.1" min="0">
+                    <span class="input-group-text">A</span>
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Charging Current</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="chargingCurrent" step="0.1" min="0">
+                    <span class="input-group-text">A</span>
                   </div>
                 </div>
               </div>
 
+              <!-- 6. Technical Checks & Remarks -->
+              <div class="section-header">
+                <h4><i class="bi bi-check2-square"></i> Technical Checks & Remarks</h4>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Component Checks</label>
+                <div class="component-checks">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkVIP">
+                    <label class="form-check-label" for="checkVIP">VIP</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkSMD">
+                    <label class="form-check-label" for="checkSMD">SMD</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkUT">
+                    <label class="form-check-label" for="checkUT">UT</label>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Testing Conditions</label>
+                  <select class="form-select" id="testingConditions">
+                    <option value="">-- Select Condition --</option>
+                    <option value="With Battery">With Battery</option>
+                    <option value="Without Battery">Without Battery</option>
+                  </select>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Additional Test Equipment Model</label>
+                  <input type="text" class="form-control" id="testEquipmentModel" placeholder="Withstand Model">
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Additional Test Equipment Serial No</label>
+                  <input type="text" class="form-control" id="testEquipmentSerial" placeholder="Withstand Serial No">
+                </div>
+              </div>
+              
               <div class="mb-3">
                 <label class="form-label">
-                  <i class="bi bi-card-text"></i> Product / Service Description
+                  <i class="bi bi-journal-text"></i> Technician's Technical Remarks
                 </label>
-                <textarea class="form-control" id="serviceDesc" rows="3" required></textarea>
+                <textarea class="form-control" id="techRemarks" rows="4" placeholder="Technical observations, recommendations, and remarks..."></textarea>
               </div>
 
+              <!-- 7. Logistics and Completion -->
+              <div class="section-header">
+                <h4><i class="bi bi-truck"></i> Logistics and Completion</h4>
+              </div>
+              
               <div class="row">
                 <div class="col-md-4 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-calendar-event"></i> Date
+                    <i class="bi bi-person-gear"></i> Technician Name
                   </label>
-                  <input type="date" class="form-control" id="invoiceDate" required>
+                  <select class="form-select" id="technicianName">
+                    <option value="">-- Select Technician --</option>
+                    <option value="John Smith">John Smith</option>
+                    <option value="Mike Johnson">Mike Johnson</option>
+                    <option value="David Wilson">David Wilson</option>
+                    <option value="Sarah Davis">Sarah Davis</option>
+                    <option value="Other">Other (Type below)</option>
+                  </select>
+                  <input type="text" class="form-control mt-2" id="technicianNameOther" placeholder="Enter technician name" style="display: none;">
                 </div>
                 
                 <div class="col-md-4 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-clock"></i> Start Time
+                    <i class="bi bi-person-driving"></i> Driver Name
                   </label>
-                  <input type="time" class="form-control" id="startTime" required>
+                  <input type="text" class="form-control" id="driverName">
                 </div>
                 
                 <div class="col-md-4 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-clock-history"></i> End Time
+                    <i class="bi bi-car-front"></i> Vehicle Number
                   </label>
-                  <input type="time" class="form-control" id="endTime" required>
+                  <input type="text" class="form-control" id="vehicleNumber" placeholder="e.g., ABC-1234">
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-clock"></i> Time In
+                  </label>
+                  <input type="time" class="form-control" id="timeIn">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-clock-history"></i> Time Out
+                  </label>
+                  <input type="time" class="form-control" id="timeOut">
+                </div>
+              </div>
+
+              <!-- 8. Customer Confirmation -->
+              <div class="section-header">
+                <h4><i class="bi bi-person-check"></i> Customer Confirmation</h4>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="bi bi-chat-quote"></i> Customer Remarks
+                </label>
+                <textarea class="form-control" id="customerRemarks" rows="3" placeholder="Customer feedback and remarks..."></textarea>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-pen"></i> Customer Signature
+                  </label>
+                  <canvas class="signature-pad" id="customerSignature"></canvas>
+                  <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('customer')">
+                      <i class="bi bi-eraser"></i> Clear
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-pen-fill"></i> Technician Signature
+                  </label>
+                  <canvas class="signature-pad" id="technicianSignature"></canvas>
+                  <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('technician')">
+                      <i class="bi bi-eraser"></i> Clear
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <div class="text-center mt-4">
                 <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
-                  <i class="bi bi-file-earmark-text"></i> Generate & Save Quotation
+                  <i class="bi bi-file-earmark-text"></i> Generate & Save Service Report
                 </button>
               </div>
             </form>
@@ -356,127 +626,24 @@
             <!-- Status Messages -->
             <div id="statusMessage" class="alert alert-custom mt-3" style="display: none;"></div>
 
-            <!-- Invoice Preview -->
-            <div id="invoicePreview" class="invoice-preview" style="display:none">
-              <h3><i class="bi bi-file-earmark-check"></i> Service Quotation Preview</h3>
-              <div class="row">
-                <div class="col-md-6">
-                  <p><strong>Quotation Number:</strong> <span id="previewQuotationNumber" class="badge-custom"></span></p>
-                  <p><strong>Quotation ID:</strong> <span id="previewQuotationId" class="badge-custom"></span></p>
-                  <p><strong>Client:</strong> <span id="previewClient"></span></p>
-                  <p><strong>Technician:</strong> <span id="previewTechnician"></span></p>
-                  <p><strong>Date:</strong> <span id="previewDate"></span></p>
-                </div>
-                <div class="col-md-6">
-                  <p><strong>Address:</strong> <span id="previewAddress"></span></p>
-                  <p><strong>Amount:</strong> <span class="text-success fw-bold">LKR <span id="previewAmount"></span></span></p>
-                  <p><strong>Time:</strong> <span id="previewStart"></span> - <span id="previewEnd"></span></p>
-                </div>
-              </div>
-              <p><strong>Description:</strong> <span id="previewDesc"></span></p>
+            <!-- Report Preview -->
+            <div id="reportPreview" class="report-preview" style="display:none">
+              <h3><i class="bi bi-file-earmark-check"></i> Service Report Preview</h3>
+              <div id="previewContent"></div>
               
               <div class="mt-3 d-flex gap-2 flex-wrap">
                 <button class="btn btn-success" onclick="downloadPDF()">
                   <i class="bi bi-file-earmark-pdf"></i> Download PDF
                 </button>
                 <button class="btn btn-info" onclick="window.print()">
-                  <i class="bi bi-printer"></i> Print Quotation
+                  <i class="bi bi-printer"></i> Print Report
                 </button>
-                <button class="btn btn-warning" onclick="shareQuotation()">
-                  <i class="bi bi-share"></i> Share Quotation
+                <button class="btn btn-warning" onclick="shareReport()">
+                  <i class="bi bi-share"></i> Share Report
                 </button>
-              </div>
-            </div>
-
-            <!-- Password Protection for Quotation History -->
-            <div class="card card-custom mt-4" id="historyAuth">
-              <div class="card-header card-header-custom">
-                <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Quotation History Access</h5>
-              </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-8">
-                    <input type="password" class="form-control" id="historyPassword" placeholder="Enter password to view history">
-                  </div>
-                  <div class="col-md-4">
-                    <button class="btn btn-primary w-100" onclick="checkHistoryPassword()">
-                      <i class="bi bi-unlock"></i> Unlock History
-                    </button>
-                  </div>
-                </div>
-                <div id="historyAuthMsg" class="alert alert-custom mt-3" style="display: none;"></div>
-              </div>
-            </div>
-
-            <!-- Actual History Section -->
-            <div class="card card-custom mt-4" style="display: none;" id="historySection">
-              <div class="card-header card-header-custom">
-                <h5 class="mb-0 toggle-section" onclick="toggleHistory()" style="cursor: pointer;">
-                  <i class="bi bi-clock-history"></i> Quotation History 
-                  <small class="opacity-75">(Click to expand)</small>
-                </h5>
-              </div>
-              <div class="card-body" id="historyContent" style="display: none;">
-                <button class="btn btn-primary mb-3" onclick="loadQuotations()">
-                  <i class="bi bi-arrow-clockwise"></i> Load All Quotations
-                </button>
-                <div id="quotationsList"></div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Client Modal -->
-  <div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header" style="background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white;">
-          <h5 class="modal-title" id="modalTitle">
-            <i class="bi bi-person-plus"></i> Add New Client
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="clientForm">
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">
-                  <i class="bi bi-person"></i> Client Name
-                </label>
-                <input type="text" class="form-control" id="modalClientName" required>
-              </div>
-              
-              <div class="col-md-6 mb-3">
-                <label class="form-label">
-                  <i class="bi bi-telephone"></i> Phone Number (Optional)
-                </label>
-                <input type="tel" class="form-control" id="modalClientPhone">
-              </div>
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label">
-                <i class="bi bi-envelope"></i> Email (Optional)
-              </label>
-              <input type="email" class="form-control" id="modalClientEmail">
-            </div>
-            
-            <div class="mb-3">
-              <label class="form-label">
-                <i class="bi bi-geo-alt"></i> Client Address
-              </label>
-              <textarea class="form-control" id="modalClientAddress" rows="3" required></textarea>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="saveClientBtn" form="clientForm">
-            <i class="bi bi-save"></i> Save Client
-          </button>
         </div>
       </div>
     </div>
@@ -486,47 +653,61 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // --- IMPORTANT ---
-    // Supabase credentials are hardcoded for demonstration. In production, move to environment variables.
-    window.ENV = {
-      SUPABASE_URL: 'https://gsnsdatsrrqhfqznyhet.supabase.co',
-      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzbnNkYXRzcnJxaGZxem55aGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NzgyMzcsImV4cCI6MjA2NzQ1NDIzN30.cziUq0KItB8XshLneFlGQ0DSc_jE-icCuyoWt-BY5Og'
-    };
+    let customerSignaturePad, technicianSignaturePad;
+    let currentReportData = null;
+    let supabase = null;
 
-    let supabaseClient = null;
-    let currentQuotationData = null;
-    let selectedClientId = null;
-    let clientsData = [];
+    // Supabase configuration - Replace with your actual credentials
+    const SUPABASE_URL = 'https://gsnsdatsrrqhfqznyhet.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzbnNkYXRzcnJxaGZxem55aGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4NzgyMzcsImV4cCI6MjA2NzQ1NDIzN30.cziUq0KItB8XshLneFlGQ0DSc_jE-icCuyoWt-BY5Og';
 
-    const products = [
-      { name: "Fingerprint Scanner", desc: "ZKT Fingerprint Attendance Device", price: 45000 },
-      { name: "RFID Card Reader", desc: "Secure access control reader", price: 15000 },
-      { name: "Face Recognition Terminal", desc: "Advanced biometric terminal", price: 60000 }
-    ];
-
-    // Initialize product dropdown
-    const select = document.getElementById("productSelect");
-    products.forEach((product, index) => {
-      const option = document.createElement("option");
-      option.value = index;
-      option.textContent = product.name;
-      select.appendChild(option);
-    });
-
-    select.addEventListener("change", function() {
-      const selectedIndex = this.value;
-      if (selectedIndex) {
-        const selected = products[selectedIndex];
-        document.getElementById("serviceDesc").value = selected.desc;
-        document.getElementById("amount").value = selected.price;
-      } else {
-        document.getElementById("serviceDesc").value = "";
-        document.getElementById("amount").value = "";
+    // Initialize Supabase connection on page load
+    function initializeSupabase() {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
+        showStatus('Database connection failed. Please check configuration.', 'danger');
       }
-    });
+    }
 
-    // Password for history section (in production, use hashed password stored in Supabase)
-    const HISTORY_PASSWORD = 'debug123';
+    // Initialize signature pads
+    function initializeSignaturePads() {
+      const customerCanvas = document.getElementById('customerSignature');
+      const technicianCanvas = document.getElementById('technicianSignature');
+      
+      customerSignaturePad = new SignaturePad(customerCanvas, {
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        penColor: 'rgb(0, 0, 0)'
+      });
+      
+      technicianSignaturePad = new SignaturePad(technicianCanvas, {
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        penColor: 'rgb(0, 0, 0)'
+      });
+      
+      // Resize signature pads
+      resizeSignaturePads();
+    }
+
+    function resizeSignaturePads() {
+      const canvases = document.querySelectorAll('.signature-pad');
+      canvases.forEach(canvas => {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext('2d').scale(ratio, ratio);
+      });
+    }
+
+    function clearSignature(type) {
+      if (type === 'customer') {
+        customerSignaturePad.clear();
+      } else {
+        technicianSignaturePad.clear();
+      }
+    }
 
     function showStatus(message, type = 'success') {
       const statusElement = document.getElementById('statusMessage');
@@ -536,320 +717,342 @@
       setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
     }
 
-    function toggleHistory() {
-      const content = document.getElementById('historyContent');
-      content.style.display = content.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function initializeSupabaseInternal(url, key) {
-      if (!url || url.includes('your-project-id')) {
-        console.error("Supabase URL is not set.");
-        showStatus('Supabase URL is invalid.', 'danger');
-        return;
-      }
-      try {
-        const { createClient } = supabase; 
-        supabaseClient = createClient(url, key);
-        console.log('Attempting to connect to Supabase...');
-        testSupabaseConnection();
-      } catch (error) {
-        console.error('Error initializing Supabase client:', error.message);
-        showStatus('Failed to initialize Supabase client.', 'danger');
-      }
-    }
-
-    async function testSupabaseConnection() {
-      if (!supabaseClient) return;
-      try {
-        const { error: quotationsError } = await supabaseClient.from('quotations').select('id').limit(1);
-        if (quotationsError && !quotationsError.message.includes('does not exist')) {
-          throw quotationsError;
-        }
-        
-        const { error: clientsError } = await supabaseClient.from('clients').select('id').limit(1);
-        if (clientsError && clientsError.message.includes('does not exist')) {
-          showStatus('Clients table will be created automatically when you add your first client.', 'warning');
-        }
-        
-        console.log('Database connected successfully.');
-        loadClients();
-      } catch (error) {
-        console.error('Database connection error:', error.message);
-        showStatus('Database connection error. Please check your Supabase credentials.', 'danger');
-      }
-    }
-
-    // Generate quotation number based on ID and year
-    function generateQuotationNumber(id) {
-      const year = new Date().getFullYear();
-      return `Q-${year}-${String(id).padStart(3, '0')}`;
-    }
-
-    // Client management functions
-    async function loadClients() {
-      if (!supabaseClient) return;
-      try {
-        const { data, error } = await supabaseClient
-          .from('clients')
-          .select('*')
-          .order('name');
-        
-        if (error && !error.message.includes('does not exist')) {
-          throw error;
-        }
-        
-        clientsData = data || [];
-      } catch (error) {
-        console.error('Error loading clients:', error.message);
-        showStatus('Failed to load clients.', 'danger');
-      }
-    }
-
-    async function saveClient(clientData) {
-      if (!supabaseClient) return null;
-      try {
-        const { data, error } = await supabaseClient
-          .from('clients')
-          .insert([clientData])
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Error saving client:', error.message);
-        showStatus('Failed to save client.', 'danger');
-        throw error;
-      }
-    }
-
-    async function updateClient(clientId, clientData) {
-      if (!supabaseClient) return null;
-      try {
-        const { data, error } = await supabaseClient
-          .from('clients')
-          .update(clientData)
-          .eq('id', clientId)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Error updating client:', error.message);
-        showStatus('Failed to update client.', 'danger');
-        throw error;
-      }
-    }
-
-    // Client search functionality
-    function filterClients(searchTerm) {
-      if (!searchTerm) return [];
-      return clientsData.filter(client => 
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.address.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    function showClientSuggestions(suggestions) {
-      const suggestionsDiv = document.getElementById('clientSuggestions');
-      suggestionsDiv.innerHTML = '';
-      
-      if (suggestions.length === 0) {
-        suggestionsDiv.style.display = 'none';
-        return;
-      }
-      
-      suggestions.forEach(client => {
-        const suggestion = document.createElement('div');
-        suggestion.className = 'client-suggestion';
-        suggestion.innerHTML = `
-          <strong>${client.name}</strong><br>
-          <small class="text-muted">${client.address}</small>
-        `;
-        suggestion.addEventListener('click', () => selectClient(client));
-        suggestionsDiv.appendChild(suggestion);
-      });
-      
-      suggestionsDiv.style.display = 'block';
-    }
-
-    function selectClient(client) {
-      selectedClientId = client.id;
-      document.getElementById('clientName').value = client.name;
-      document.getElementById('clientAddress').value = client.address;
-      document.getElementById('clientSuggestions').style.display = 'none';
-      document.getElementById('updateClientBtn').style.display = 'inline-block';
-      document.getElementById('newClientBtn').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
-    }
-
-    // Password check for history section
-    function checkHistoryPassword() {
-      const input = document.getElementById('historyPassword').value;
-      const msg = document.getElementById('historyAuthMsg');
-
-      if (input === HISTORY_PASSWORD) {
-        document.getElementById('historyAuth').style.display = 'none';
-        document.getElementById('historySection').style.display = 'block';
-        msg.style.display = 'none';
-        loadQuotations();
+    // Handle technician name selection
+    document.getElementById('technicianName').addEventListener('change', function() {
+      const otherInput = document.getElementById('technicianNameOther');
+      if (this.value === 'Other') {
+        otherInput.style.display = 'block';
+        otherInput.required = true;
       } else {
-        msg.textContent = '❌ Incorrect password. Please try again.';
-        msg.className = 'alert alert-danger alert-custom';
-        msg.style.display = 'block';
+        otherInput.style.display = 'none';
+        otherInput.required = false;
+        otherInput.value = '';
       }
-    }
+    });
 
-    // Quotation management functions
-    async function loadQuotations() {
-      if (!supabaseClient) {
-        showStatus('Database not connected.', 'danger');
-        return;
+    // Save data to Supabase single table
+    async function saveToSupabase(formData) {
+      if (!supabase) {
+        throw new Error('Database not initialized. Please refresh the page.');
       }
 
       try {
-        const { data, error } = await supabaseClient
-          .from('quotations')
-          .select(`
-            *,
-            clients (name, address)
-          `)
-          .order('created_at', { ascending: false });
+        // Insert all data into single service_reports table
+        const { data, error } = await supabase
+          .from('service_reports')
+          .insert([{
+            // Job Identification
+            job_number: formData.jobNumber,
+            job_type: formData.jobType,
+            invoice_number: formData.invoiceNumber,
+            report_date: formData.reportDate,
+            
+            // Customer Information
+            customer_name: formData.customerName,
+            customer_address: formData.customerAddress,
+            contact_person: formData.contactPerson,
+            contact_number: formData.contactNumber,
+            
+            // UPS & Battery Details
+            ups_brand: formData.upsBrand || null,
+            ups_model: formData.upsModel || null,
+            ups_serial_number: formData.upsSerial || null,
+            ups_kva_rating: formData.upsKVA ? parseFloat(formData.upsKVA) : null,
+            ups_kw_rating: formData.upsKW ? parseFloat(formData.upsKW) : null,
+            battery_make_ah: formData.batteryMakeAH || null,
+            battery_type_quantity: formData.batteryTypeQty || null,
+            battery_date_set: formData.batteryDateSet || null,
+            reference_preparation_number: formData.referenceNumber || null,
+            
+            // Service Request Details
+            fault_reported: formData.faultReported,
+            
+            // Technical Readings
+            input_voltage_ln: formData.inputVoltageLN ? parseFloat(formData.inputVoltageLN) : null,
+            input_voltage_le: formData.inputVoltageLE ? parseFloat(formData.inputVoltageLE) : null,
+            input_voltage_ne: formData.inputVoltageNE ? parseFloat(formData.inputVoltageNE) : null,
+            output_voltage_ln: formData.outputVoltageLN ? parseFloat(formData.outputVoltageLN) : null,
+            output_voltage_le: formData.outputVoltageLE ? parseFloat(formData.outputVoltageLE) : null,
+            output_voltage_ne: formData.outputVoltageNE ? parseFloat(formData.outputVoltageNE) : null,
+            load_percentage: formData.loadPercentage ? parseFloat(formData.loadPercentage) : null,
+            load_amperage: formData.loadAmperage ? parseFloat(formData.loadAmperage) : null,
+            charging_current: formData.chargingCurrent ? parseFloat(formData.chargingCurrent) : null,
+            
+            // Technical Checks & Remarks
+            check_vip: formData.checkVIP,
+            check_smd: formData.checkSMD,
+            check_ut: formData.checkUT,
+            testing_conditions: formData.testingConditions || null,
+            additional_test_equipment_model: formData.testEquipmentModel || null,
+            additional_test_equipment_serial: formData.testEquipmentSerial || null,
+            technician_remarks: formData.techRemarks || null,
+            
+            // Logistics and Completion
+            technician_name: formData.technicianName || null,
+            driver_name: formData.driverName || null,
+            vehicle_number: formData.vehicleNumber || null,
+            time_in: formData.timeIn || null,
+            time_out: formData.timeOut || null,
+            
+            // Customer Confirmation
+            customer_remarks: formData.customerRemarks || null,
+            customer_signature: formData.customerSignature,
+            technician_signature: formData.technicianSignature,
+            
+            // Metadata
+            created_at: new Date().toISOString()
+          }])
+          .select();
 
         if (error) throw error;
+        return data[0];
+      } catch (error) {
+        console.error('Error saving to Supabase:', error);
+        throw error;
+      }
+    }
 
-        const quotationsList = document.getElementById('quotationsList');
-        quotationsList.innerHTML = '';
+    // Form submission
+    document.getElementById('serviceForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!supabase) {
+        showStatus('Database not initialized. Please refresh the page.', 'danger');
+        return;
+      }
 
-        if (data.length === 0) {
-          quotationsList.innerHTML = '<p class="text-muted">No quotations found.</p>';
+      // Show loading state
+      const submitBtn = document.getElementById('generateBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+      submitBtn.disabled = true;
+      
+      // Collect all form data
+      const formData = {
+        // Job Identification
+        jobNumber: document.getElementById('jobNumber').value,
+        jobType: document.getElementById('jobType').value,
+        invoiceNumber: document.getElementById('invoiceNumber').value,
+        
+        // Customer Information
+        customerName: document.getElementById('customerName').value,
+        customerAddress: document.getElementById('customerAddress').value,
+        contactPerson: document.getElementById('contactPerson').value,
+        contactNumber: document.getElementById('contactNumber').value,
+        reportDate: document.getElementById('reportDate').value,
+        
+        // UPS & Battery Details
+        upsBrand: document.getElementById('upsBrand').value,
+        upsModel: document.getElementById('upsModel').value,
+        upsSerial: document.getElementById('upsSerial').value,
+        upsKVA: document.getElementById('upsKVA').value,
+        upsKW: document.getElementById('upsKW').value,
+        batteryMakeAH: document.getElementById('batteryMakeAH').value,
+        batteryTypeQty: document.getElementById('batteryTypeQty').value,
+        batteryDateSet: document.getElementById('batteryDateSet').value,
+        referenceNumber: document.getElementById('referenceNumber').value,
+        
+        // Service Request Details
+        faultReported: document.getElementById('faultReported').value,
+        
+        // Technical Readings
+        inputVoltageLN: document.getElementById('inputVoltageLN').value,
+        inputVoltageLE: document.getElementById('inputVoltageLE').value,
+        inputVoltageNE: document.getElementById('inputVoltageNE').value,
+        outputVoltageLN: document.getElementById('outputVoltageLN').value,
+        outputVoltageLE: document.getElementById('outputVoltageLE').value,
+        outputVoltageNE: document.getElementById('outputVoltageNE').value,
+        loadPercentage: document.getElementById('loadPercentage').value,
+        loadAmperage: document.getElementById('loadAmperage').value,
+        chargingCurrent: document.getElementById('chargingCurrent').value,
+        
+        // Technical Checks & Remarks
+        checkVIP: document.getElementById('checkVIP').checked,
+        checkSMD: document.getElementById('checkSMD').checked,
+        checkUT: document.getElementById('checkUT').checked,
+        testingConditions: document.getElementById('testingConditions').value,
+        testEquipmentModel: document.getElementById('testEquipmentModel').value,
+        testEquipmentSerial: document.getElementById('testEquipmentSerial').value,
+        techRemarks: document.getElementById('techRemarks').value,
+        
+        // Logistics and Completion
+        technicianName: document.getElementById('technicianName').value === 'Other' ? 
+                       document.getElementById('technicianNameOther').value : 
+                       document.getElementById('technicianName').value,
+        driverName: document.getElementById('driverName').value,
+        vehicleNumber: document.getElementById('vehicleNumber').value,
+        timeIn: document.getElementById('timeIn').value,
+        timeOut: document.getElementById('timeOut').value,
+        
+        // Customer Confirmation
+        customerRemarks: document.getElementById('customerRemarks').value,
+        customerSignature: customerSignaturePad.isEmpty() ? null : customerSignaturePad.toDataURL(),
+        technicianSignature: technicianSignaturePad.isEmpty() ? null : technicianSignaturePad.toDataURL()
+      };
+
+      // Validate required fields
+      const requiredFields = ['jobNumber', 'jobType', 'invoiceNumber', 'customerName', 'contactPerson', 'customerAddress', 'contactNumber', 'reportDate', 'faultReported'];
+      
+      for (let field of requiredFields) {
+        if (!formData[field]) {
+          showStatus(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}.`, 'danger');
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
           return;
         }
-
-        data.forEach(quotation => {
-          const item = document.createElement('div');
-          item.className = 'history-item';
-          item.innerHTML = `
-            <h5>Quotation #${quotation.quotation_number}</h5>
-            <p><strong>ID:</strong> ${quotation.id}</p>
-            <p><strong>Client:</strong> ${quotation.clients.name}</p>
-            <p><strong>Technician:</strong> ${quotation.technician_name}</p>
-            <p><strong>Amount:</strong> LKR ${quotation.amount}</p>
-            <p><strong>Date:</strong> ${quotation.date}</p>
-            <p><strong>Description:</strong> ${quotation.description}</p>
-            <button class="btn btn-info btn-sm" onclick="viewQuotation('${quotation.id}')">
-              <i class="bi bi-eye"></i> View
-            </button>
-          `;
-          quotationsList.appendChild(item);
-        });
-      } catch (error) {
-        console.error('Error loading quotations:', error.message);
-        showStatus('Failed to load quotations.', 'danger');
       }
-    }
 
-    async function viewQuotation(quotationId) {
       try {
-        const { data, error } = await supabaseClient
-          .from('quotations')
-          .select(`
-            *,
-            clients (name, address)
-          `)
-          .eq('id', quotationId)
-          .single();
-
-        if (error) throw error;
-
-        currentQuotationData = {
-          id: data.id,
-          quotation_number: data.quotation_number,
-          client_name: data.clients.name,
-          client_address: data.clients.address,
-          technician_name: data.technician_name,
-          product: data.product,
-          description: data.description,
-          amount: data.amount,
-          date: data.date,
-          start_time: data.start_time,
-          end_time: data.end_time
-        };
-
-        // Update preview
-        document.getElementById('previewQuotationNumber').textContent = data.quotation_number;
-        document.getElementById('previewQuotationId').textContent = data.id;
-        document.getElementById('previewClient').textContent = data.clients.name;
-        document.getElementById('previewTechnician').textContent = data.technician_name;
-        document.getElementById('previewDate').textContent = data.date;
-        document.getElementById('previewAddress').textContent = data.clients.address;
-        document.getElementById('previewAmount').textContent = data.amount;
-        document.getElementById('previewStart').textContent = data.start_time;
-        document.getElementById('previewEnd').textContent = data.end_time;
-        document.getElementById('previewDesc').textContent = data.description;
-        document.getElementById('invoicePreview').style.display = 'block';
+        // Save to Supabase
+        const savedReport = await saveToSupabase(formData);
+        
+        currentReportData = formData;
+        generatePreview();
+        showStatus(`Service report saved successfully! Report ID: ${savedReport.id}`, 'success');
       } catch (error) {
-        console.error('Error viewing quotation:', error.message);
-        showStatus('Failed to load quotation details.', 'danger');
+        showStatus('Error saving report: ' + error.message, 'danger');
+        console.error('Save error:', error);
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
       }
+    });
+
+    function generatePreview() {
+      const data = currentReportData;
+      const previewContent = document.getElementById('previewContent');
+      
+      let componentChecks = [];
+      if (data.checkVIP) componentChecks.push('VIP');
+      if (data.checkSMD) componentChecks.push('SMD');
+      if (data.checkUT) componentChecks.push('UT');
+      
+      previewContent.innerHTML = `
+        <div class="row">
+          <div class="col-md-6">
+            <h5>Job Information</h5>
+            <p><strong>Job Number:</strong> ${data.jobNumber}</p>
+            <p><strong>Job Type:</strong> ${data.jobType}</p>
+            <p><strong>Invoice Number:</strong> ${data.invoiceNumber}</p>
+            <p><strong>Report Date:</strong> ${data.reportDate}</p>
+            
+            <h5 class="mt-3">Customer Information</h5>
+            <p><strong>Customer:</strong> ${data.customerName}</p>
+            <p><strong>Contact Person:</strong> ${data.contactPerson}</p>
+            <p><strong>Contact Number:</strong> ${data.contactNumber}</p>
+            <p><strong>Address:</strong> ${data.customerAddress}</p>
+          </div>
+          
+          <div class="col-md-6">
+            <h5>UPS Details</h5>
+            <p><strong>Brand:</strong> ${data.upsBrand || 'N/A'}</p>
+            <p><strong>Model:</strong> ${data.upsModel || 'N/A'}</p>
+            <p><strong>Serial:</strong> ${data.upsSerial || 'N/A'}</p>
+            <p><strong>KVA Rating:</strong> ${data.upsKVA || 'N/A'}</p>
+            <p><strong>kW Rating:</strong> ${data.upsKW || 'N/A'}</p>
+            
+            <h5 class="mt-3">Service Details</h5>
+            <p><strong>Technician:</strong> ${data.technicianName}</p>
+            <p><strong>Time:</strong> ${data.timeIn || 'N/A'} - ${data.timeOut || 'N/A'}</p>
+            <p><strong>Component Checks:</strong> ${componentChecks.join(', ') || 'None'}</p>
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <h5>Fault Reported</h5>
+          <p>${data.faultReported}</p>
+        </div>
+        
+        ${data.techRemarks ? `
+        <div class="mt-3">
+          <h5>Technical Remarks</h5>
+          <p>${data.techRemarks}</p>
+        </div>
+        ` : ''}
+        
+        ${data.customerRemarks ? `
+        <div class="mt-3">
+          <h5>Customer Remarks</h5>
+          <p>${data.customerRemarks}</p>
+        </div>
+        ` : ''}
+      `;
+      
+      document.getElementById('reportPreview').style.display = 'block';
     }
 
     async function downloadPDF() {
-      if (!currentQuotationData) {
-        showStatus('No quotation data available to download.', 'danger');
+      if (!currentReportData) {
+        showStatus('No report data available to download.', 'danger');
         return;
       }
 
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
+      const data = currentReportData;
 
       // Add company header
       doc.setFontSize(20);
-      doc.setTextColor(46, 125, 50); // Green color
+      doc.setTextColor(46, 125, 50);
       doc.text('Debug Computer Peripherals', 20, 20);
       doc.setFontSize(12);
       doc.setTextColor(100);
-      doc.text('Service Quotation', 20, 30);
+      doc.text('Service Report', 20, 30);
 
-      // Quotation details
+      // Job Information
       doc.setFontSize(10);
-      doc.text(`Quotation Number: ${currentQuotationData.quotation_number}`, 20, 50);
-      doc.text(`Quotation ID: ${currentQuotationData.id}`, 20, 60);
-      doc.text(`Client: ${currentQuotationData.client_name}`, 20, 70);
-      doc.text(`Address: ${currentQuotationData.client_address}`, 20, 80);
-      doc.text(`Technician: ${currentQuotationData.technician_name}`, 20, 90);
-      doc.text(`Date: ${currentQuotationData.date}`, 20, 100);
-      doc.text(`Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}`, 20, 110);
-      doc.text(`Product: ${currentQuotationData.product}`, 20, 120);
-      doc.text(`Description: ${currentQuotationData.description}`, 20, 130, { maxWidth: 160 });
-      doc.setTextColor(0, 128, 0);
-      doc.text(`Amount: LKR ${currentQuotationData.amount}`, 20, 150);
+      let yPos = 50;
+      doc.text(`Job Number: ${data.jobNumber}`, 20, yPos);
+      doc.text(`Job Type: ${data.jobType}`, 20, yPos + 10);
+      doc.text(`Invoice Number: ${data.invoiceNumber}`, 20, yPos + 20);
+      doc.text(`Report Date: ${data.reportDate}`, 20, yPos + 30);
+
+      // Customer Information
+      yPos += 50;
+      doc.text(`Customer: ${data.customerName}`, 20, yPos);
+      doc.text(`Contact Person: ${data.contactPerson}`, 20, yPos + 10);
+      doc.text(`Contact Number: ${data.contactNumber}`, 20, yPos + 20);
+      doc.text(`Address: ${data.customerAddress}`, 20, yPos + 30, { maxWidth: 160 });
+
+      // UPS Details
+      yPos += 60;
+      doc.text(`UPS Brand: ${data.upsBrand || 'N/A'}`, 20, yPos);
+      doc.text(`UPS Model: ${data.upsModel || 'N/A'}`, 20, yPos + 10);
+      doc.text(`UPS Serial: ${data.upsSerial || 'N/A'}`, 20, yPos + 20);
+
+      // Service Details
+      yPos += 40;
+      doc.text(`Technician: ${data.technicianName}`, 20, yPos);
+      doc.text(`Time: ${data.timeIn || 'N/A'} - ${data.timeOut || 'N/A'}`, 20, yPos + 10);
+
+      // Fault Reported
+      yPos += 30;
+      doc.text('Fault Reported:', 20, yPos);
+      doc.text(data.faultReported, 20, yPos + 10, { maxWidth: 160 });
 
       // Save PDF
-      doc.save(`Quotation_${currentQuotationData.quotation_number}.pdf`);
+      doc.save(`Service_Report_${data.jobNumber}.pdf`);
     }
 
-    function shareQuotation() {
-      if (!currentQuotationData) {
-        showStatus('No quotation data available to share.', 'danger');
+    function shareReport() {
+      if (!currentReportData) {
+        showStatus('No report data available to share.', 'danger');
         return;
       }
 
-      const subject = `Service Quotation ${currentQuotationData.quotation_number} from Debug Computer Peripherals`;
+      const data = currentReportData;
+      const subject = `Service Report ${data.jobNumber} - Debug Computer Peripherals`;
       const body = `
-Dear ${currentQuotationData.client_name},
+Service Report Details:
 
-Please find your service quotation details below:
+Job Number: ${data.jobNumber}
+Job Type: ${data.jobType}
+Customer: ${data.customerName}
+Contact Person: ${data.contactPerson}
+Report Date: ${data.reportDate}
+Technician: ${data.technicianName}
 
-Quotation Number: ${currentQuotationData.quotation_number}
-Quotation ID: ${currentQuotationData.id}
-Date: ${currentQuotationData.date}
-Technician: ${currentQuotationData.technician_name}
-Address: ${currentQuotationData.client_address}
-Product: ${currentQuotationData.product}
-Description: ${currentQuotationData.description}
-Time: ${currentQuotationData.start_time} - ${currentQuotationData.end_time}
-Amount: LKR ${currentQuotationData.amount}
+Fault Reported: ${data.faultReported}
 
 Best regards,
 Debug Computer Peripherals
@@ -859,223 +1062,19 @@ Debug Computer Peripherals
       window.location.href = mailtoLink;
     }
 
-    // Event listeners
-    document.getElementById('clientName').addEventListener('input', function() {
-      const searchTerm = this.value;
-      selectedClientId = null;
-      document.getElementById('updateClientBtn').style.display = 'none';
-      document.getElementById('newClientBtn').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
+    // Initialize when page loads
+    window.addEventListener('load', function() {
+      initializeSupabase();
+      initializeSignaturePads();
       
-      if (searchTerm.length >= 2) {
-        const suggestions = filterClients(searchTerm);
-        showClientSuggestions(suggestions);
-      } else {
-        document.getElementById('clientSuggestions').style.display = 'none';
-      }
+      // Set current date as default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('reportDate').value = today;
     });
 
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.client-search-container')) {
-        document.getElementById('clientSuggestions').style.display = 'none';
-      }
-    });
-
-    // Modal functionality
-    const clientModal = new bootstrap.Modal(document.getElementById('clientModal'));
-
-    document.getElementById('newClientBtn').addEventListener('click', function() {
-      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-plus"></i> Add New Client';
-      document.getElementById('modalClientName').value = document.getElementById('clientName').value;
-      document.getElementById('modalClientAddress').value = document.getElementById('clientAddress').value;
-      document.getElementById('modalClientPhone').value = '';
-      document.getElementById('modalClientEmail').value = '';
-      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Save Client';
-      clientModal.show();
-    });
-
-    document.getElementById('updateClientBtn').addEventListener('click', function() {
-      if (!selectedClientId) return;
-      
-      const client = clientsData.find(c => c.id === selectedClientId);
-      if (!client) return;
-      
-      document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-gear"></i> Update Client';
-      document.getElementById('modalClientName').value = client.name;
-      document.getElementById('modalClientAddress').value = client.address;
-      document.getElementById('modalClientPhone').value = client.phone || '';
-      document.getElementById('modalClientEmail').value = client.email || '';
-      document.getElementById('saveClientBtn').innerHTML = '<i class="bi bi-save"></i> Update Client';
-      clientModal.show();
-    });
-
-    document.getElementById('clientForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const clientData = {
-        name: document.getElementById('modalClientName').value,
-        address: document.getElementById('modalClientAddress').value,
-        phone: document.getElementById('modalClientPhone').value || null,
-        email: document.getElementById('modalClientEmail').value || null
-      };
-
-      // Basic validation
-      if (!clientData.name || !clientData.address) {
-        showStatus('Client name and address are required.', 'danger');
-        return;
-      }
-
-      if (clientData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientData.email)) {
-        showStatus('Invalid email format.', 'danger');
-        return;
-      }
-
-      const saveBtn = document.getElementById('saveClientBtn');
-      saveBtn.disabled = true;
-      saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
-      
-      try {
-        let savedClient;
-        if (selectedClientId) {
-          savedClient = await updateClient(selectedClientId, clientData);
-          showStatus('Client updated successfully!', 'success');
-          clientsData = clientsData.map(c => c.id === selectedClientId ? savedClient : c);
-        } else {
-          savedClient = await saveClient(clientData);
-          showStatus('Client saved successfully!', 'success');
-          clientsData.push(savedClient);
-        }
-
-        document.getElementById('clientName').value = savedClient.name;
-        document.getElementById('clientAddress').value = savedClient.address;
-        selectedClientId = savedClient.id;
-        document.getElementById('updateClientBtn').style.display = 'inline-block';
-        clientModal.hide();
-      } catch (error) {
-        // Error handling already done in saveClient/updateClient
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = selectedClientId ? '<i class="bi bi-save"></i> Update Client' : '<i class="bi bi-save"></i> Save Client';
-      }
-    });
-
-    // Invoice form submission
-    document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      // Validate inputs
-      const clientName = document.getElementById('clientName').value;
-      const technicianName = document.getElementById('technicianName').value;
-      const clientAddress = document.getElementById('clientAddress').value;
-      const productIndex = document.getElementById('productSelect').value;
-      const amount = document.getElementById('amount').value;
-      const serviceDesc = document.getElementById('serviceDesc').value;
-      const invoiceDate = document.getElementById('invoiceDate').value;
-      const startTime = document.getElementById('startTime').value;
-      const endTime = document.getElementById('endTime').value;
-
-      if (!clientName || !technicianName || !clientAddress || !productIndex || !amount || !serviceDesc || !invoiceDate || !startTime || !endTime) {
-        showStatus('Please fill all required fields.', 'danger');
-        return;
-      }
-
-      if (parseFloat(amount) <= 0) {
-        showStatus('Amount must be a positive number.', 'danger');
-        return;
-      }
-
-      if (startTime >= endTime) {
-        showStatus('End time must be after start time.', 'danger');
-        return;
-      }
-
-      const generateBtn = document.getElementById('generateBtn');
-      generateBtn.disabled = true;
-      generateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
-
-      try {
-        // Save or update client
-        let clientId = selectedClientId;
-        if (!clientId) {
-          const newClient = await saveClient({
-            name: clientName,
-            address: clientAddress
-          });
-          clientId = newClient.id;
-          clientsData.push(newClient);
-        }
-
-        // Save quotation without quotation_number initially
-        const quotationData = {
-          client_id: clientId,
-          technician_name: technicianName,
-          product: products[productIndex].name,
-          description: serviceDesc,
-          amount: parseFloat(amount),
-          date: invoiceDate,
-          start_time: startTime,
-          end_time: endTime
-        };
-
-        const { data, error } = await supabaseClient
-          .from('quotations')
-          .insert([quotationData])
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        // Generate and update quotation_number
-        const quotationNumber = generateQuotationNumber(data.id);
-        const { error: updateError } = await supabaseClient
-          .from('quotations')
-          .update({ quotation_number: quotationNumber })
-          .eq('id', data.id);
-
-        if (updateError) throw updateError;
-
-        // Update preview
-        currentQuotationData = {
-          id: data.id,
-          quotation_number: quotationNumber,
-          client_name: clientName,
-          client_address: clientAddress,
-          technician_name: technicianName,
-          product: products[productIndex].name,
-          description: serviceDesc,
-          amount: amount,
-          date: invoiceDate,
-          start_time: startTime,
-          end_time: endTime
-        };
-
-        document.getElementById('previewQuotationNumber').textContent = quotationNumber;
-        document.getElementById('previewQuotationId').textContent = data.id;
-        document.getElementById('previewClient').textContent = clientName;
-        document.getElementById('previewTechnician').textContent = technicianName;
-        document.getElementById('previewDate').textContent = invoiceDate;
-        document.getElementById('previewAddress').textContent = clientAddress;
-        document.getElementById('previewAmount').textContent = amount;
-        document.getElementById('previewStart').textContent = startTime;
-        document.getElementById('previewEnd').textContent = endTime;
-        document.getElementById('previewDesc').textContent = serviceDesc;
-        document.getElementById('invoicePreview').style.display = 'block';
-
-        showStatus('Quotation generated and saved successfully!', 'success');
-        document.getElementById('invoiceForm').reset();
-        document.getElementById('clientSuggestions').style.display = 'none';
-        document.getElementById('updateClientBtn').style.display = 'none';
-        selectedClientId = null;
-      } catch (error) {
-        console.error('Error generating quotation:', error.message);
-        showStatus('Failed to generate quotation.', 'danger');
-      } finally {
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = '<i class="bi bi-file-earmark-text"></i> Generate & Save Quotation';
-      }
-    });
-
-    // Initialize Supabase
-    initializeSupabaseInternal(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+    // Handle window resize
+    window.addEventListener('resize', resizeSignaturePads);
   </script>
 </body>
 </html>
+
