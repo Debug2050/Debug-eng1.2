@@ -5,194 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Debug Computer Peripherals - Service Report Generator</title>
   
-  <!-- Bootstrap CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
-  <!-- PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Signature Pad -->
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
-    * {
-      font-family: 'Poppins', sans-serif;
-    }
-    
-    body {
-      background: linear-gradient(135deg, #4CAF50, #81C784);
-      min-height: 100vh;
-      padding: 20px 0;
-    }
-    
-    .main-container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .header-section {
-      background: linear-gradient(135deg, #2E7D32, #4CAF50);
-      color: white;
-      padding: 2rem 0;
-      text-align: center;
-    }
-    
-    .header-section h1 {
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      font-size: 2.5rem;
-    }
-    
-    .header-section p {
-      opacity: 0.9;
-      font-size: 1.1rem;
-      margin-bottom: 0;
-    }
-    
-    .form-section {
-      padding: 2rem;
-    }
-    
-    .section-header {
-      background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
-      border: 2px solid #C8E6C9;
-      border-radius: 15px;
-      padding: 1rem;
-      margin: 2rem 0 1rem 0;
-      text-align: center;
-    }
-    
-    .section-header h4 {
-      color: #2E7D32;
-      font-weight: 700;
-      margin: 0;
-    }
-    
-    .form-label {
-      font-weight: 600;
-      color: #2E7D32;
-      margin-bottom: 0.5rem;
-    }
-    
-    .form-control, .form-select {
-      border-radius: 10px;
-      border: 2px solid #e9ecef;
-      padding: 0.75rem;
-      transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-      border-color: #4CAF50;
-      box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      border: none;
-      border-radius: 10px;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #388E3C, #4CAF50);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-    }
-    
-    .btn-info {
-      background: linear-gradient(135deg, #2196F3, #42A5F5);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .btn-warning {
-      background: linear-gradient(135deg, #FF9800, #FFB74D);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .btn-success {
-      background: linear-gradient(135deg, #4CAF50, #66BB6A);
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .signature-pad {
-      border: 2px solid #e9ecef;
-      border-radius: 10px;
-      width: 100%;
-      height: 150px;
-    }
-    
-    .component-checks {
-      display: flex;
-      gap: 2rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    
-    .form-check {
-      margin-bottom: 0;
-    }
-    
-    .form-check-input:checked {
-      background-color: #4CAF50;
-      border-color: #4CAF50;
-    }
-    
-    .report-preview {
-      background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
-      border: 2px solid #C8E6C9;
-      border-radius: 15px;
-      padding: 2rem;
-      margin-top: 2rem;
-    }
-    
-    .report-preview h3 {
-      color: #2E7D32;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-    }
-    
-    .alert-custom {
-      border: none;
-      border-radius: 10px;
-      font-weight: 500;
-    }
-    
-    .voltage-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
+    * { font-family: 'Poppins', sans-serif; }
+    body { background: linear-gradient(135deg, #4CAF50, #81C784); min-height: 100vh; padding: 20px 0; }
+    .main-container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden; max-width: 1200px; margin: 0 auto; }
+    .header-section { background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 2rem 0; text-align: center; }
+    .header-section h1 { font-weight: 700; margin-bottom: 0.5rem; font-size: 2.5rem; }
+    .header-section p { opacity: 0.9; font-size: 1.1rem; margin-bottom: 0; }
+    .form-section { padding: 2rem; }
+    .section-header { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 1rem; margin: 2rem 0 1rem 0; text-align: center; }
+    .section-header h4 { color: #2E7D32; font-weight: 700; margin: 0; }
+    .form-label { font-weight: 600; color: #2E7D32; margin-bottom: 0.5rem; }
+    .form-control, .form-select { border-radius: 10px; border: 2px solid #e9ecef; padding: 0.75rem; transition: all 0.3s ease; }
+    .form-control:focus, .form-select:focus { border-color: #4CAF50; box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25); }
+    .btn-primary { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease; }
+    .btn-primary:hover { background: linear-gradient(135deg, #388E3C, #4CAF50); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
+    .btn-info { background: linear-gradient(135deg, #2196F3, #42A5F5); border: none; border-radius: 10px; font-weight: 600; }
+    .btn-warning { background: linear-gradient(135deg, #FF9800, #FFB74D); border: none; border-radius: 10px; font-weight: 600; }
+    .btn-success { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; font-weight: 600; }
+    .signature-pad { border: 2px solid #e9ecef; border-radius: 10px; width: 100%; height: 150px; }
+    .component-checks { display: flex; gap: 2rem; flex-wrap: wrap; align-items: center; }
+    .form-check { margin-bottom: 0; }
+    .form-check-input:checked { background-color: #4CAF50; border-color: #4CAF50; }
+    .report-preview { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 2rem; margin-top: 2rem; }
+    .report-preview h3 { color: #2E7D32; font-weight: 700; margin-bottom: 1.5rem; }
+    .alert-custom { border: none; border-radius: 10px; font-weight: 500; }
     
     @media (max-width: 768px) {
-      .header-section h1 {
-        font-size: 2rem;
-      }
-      
-      .form-section {
-        padding: 1rem;
-      }
-      
-      .component-checks {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
+      .header-section h1 { font-size: 2rem; }
+      .form-section { padding: 1rem; }
+      .component-checks { flex-direction: column; align-items: flex-start; gap: 1rem; }
     }
   </style>
 </head>
@@ -201,33 +50,26 @@
     <div class="row justify-content-center">
       <div class="col-12">
         <div class="main-container">
-          <!-- Header Section -->
           <div class="header-section">
             <h1><i class="bi bi-tools"></i> Debug Computer Peripherals</h1>
             <p>Professional Service Report Generator</p>
           </div>
 
-          <!-- Form Section -->
           <div class="form-section">
             <form id="serviceForm">
               
-              <!-- 1. Job Identification -->
               <div class="section-header">
                 <h4><i class="bi bi-clipboard-check"></i> Job Identification</h4>
               </div>
               
               <div class="row">
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-hash"></i> Job Number
-                  </label>
+                  <label class="form-label"><i class="bi bi-hash"></i> Job Number</label>
                   <input type="text" class="form-control" id="jobNumber" required>
                 </div>
                 
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-gear"></i> Job Type
-                  </label>
+                  <label class="form-label"><i class="bi bi-gear"></i> Job Type</label>
                   <select class="form-select" id="jobType" required>
                     <option value="">-- Select Job Type --</option>
                     <option value="Break Down">Break Down</option>
@@ -240,67 +82,51 @@
                 </div>
                 
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-receipt"></i> Invoice Number
-                  </label>
+                  <label class="form-label"><i class="bi bi-receipt"></i> Invoice Number</label>
                   <input type="text" class="form-control" id="invoiceNumber" required>
                 </div>
               </div>
 
-              <!-- 2. Customer Information -->
               <div class="section-header">
                 <h4><i class="bi bi-person-circle"></i> Customer Information</h4>
               </div>
               
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-building"></i> Customer Name
-                  </label>
+                  <label class="form-label"><i class="bi bi-building"></i> Customer Name</label>
                   <input type="text" class="form-control" id="customerName" required>
                 </div>
                 
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-person-badge"></i> Contact Person
-                  </label>
+                  <label class="form-label"><i class="bi bi-person-badge"></i> Contact Person</label>
                   <input type="text" class="form-control" id="contactPerson" required>
                 </div>
               </div>
               
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-geo-alt"></i> Customer Address
-                  </label>
+                  <label class="form-label"><i class="bi bi-geo-alt"></i> Customer Address</label>
                   <textarea class="form-control" id="customerAddress" rows="3" required></textarea>
                 </div>
                 
                 <div class="col-md-3 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-telephone"></i> Contact Number
-                  </label>
+                  <label class="form-label"><i class="bi bi-telephone"></i> Contact Number</label>
                   <input type="tel" class="form-control" id="contactNumber" required>
                 </div>
                 
                 <div class="col-md-3 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-calendar-event"></i> Report Date
-                  </label>
+                  <label class="form-label"><i class="bi bi-calendar-event"></i> Report Date</label>
                   <input type="date" class="form-control" id="reportDate" required>
                 </div>
               </div>
 
-              <!-- 3. UPS & Battery Details -->
               <div class="section-header">
                 <h4><i class="bi bi-battery-charging"></i> UPS & Battery Details</h4>
               </div>
               
               <div class="row">
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-tag"></i> UPS Brand
-                  </label>
+                  <label class="form-label"><i class="bi bi-tag"></i> UPS Brand</label>
                   <select class="form-select" id="upsBrand">
                     <option value="">-- Select Brand --</option>
                     <option value="APC">APC</option>
@@ -314,79 +140,59 @@
                 </div>
                 
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-cpu"></i> UPS Model
-                  </label>
+                  <label class="form-label"><i class="bi bi-cpu"></i> UPS Model</label>
                   <input type="text" class="form-control" id="upsModel">
                 </div>
                 
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-upc-scan"></i> UPS Serial Number
-                  </label>
+                  <label class="form-label"><i class="bi bi-upc-scan"></i> UPS Serial Number</label>
                   <input type="text" class="form-control" id="upsSerial">
                 </div>
               </div>
               
               <div class="row">
                 <div class="col-md-3 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-lightning"></i> UPS KVA Rating
-                  </label>
+                  <label class="form-label"><i class="bi bi-lightning"></i> UPS KVA Rating</label>
                   <input type="number" class="form-control" id="upsKVA" step="0.1" min="0">
                 </div>
                 
                 <div class="col-md-3 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-power"></i> UPS kW Rating
-                  </label>
+                  <label class="form-label"><i class="bi bi-power"></i> UPS kW Rating</label>
                   <input type="number" class="form-control" id="upsKW" step="0.1" min="0">
                 </div>
                 
                 <div class="col-md-3 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-battery"></i> Battery Make / AH
-                  </label>
+                  <label class="form-label"><i class="bi bi-battery"></i> Battery Make / AH</label>
                   <input type="text" class="form-control" id="batteryMakeAH" placeholder="e.g., Exide 100AH">
                 </div>
                 
                 <div class="col-md-3 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-collection"></i> Battery Type / Quantity
-                  </label>
+                  <label class="form-label"><i class="bi bi-collection"></i> Battery Type / Quantity</label>
                   <input type="text" class="form-control" id="batteryTypeQty" placeholder="e.g., Lead Acid / 4 units">
                 </div>
               </div>
               
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-calendar-date"></i> Battery Date Set
-                  </label>
+                  <label class="form-label"><i class="bi bi-calendar-date"></i> Battery Date Set</label>
                   <input type="date" class="form-control" id="batteryDateSet">
                 </div>
                 
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-file-text"></i> Reference / Preparation Number
-                  </label>
+                  <label class="form-label"><i class="bi bi-file-text"></i> Reference / Preparation Number</label>
                   <input type="text" class="form-control" id="referenceNumber">
                 </div>
               </div>
 
-              <!-- 4. Service Request Details -->
               <div class="section-header">
                 <h4><i class="bi bi-exclamation-triangle"></i> Service Request Details</h4>
               </div>
               
               <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-chat-square-text"></i> Fault Reported / Service Requested
-                </label>
+                <label class="form-label"><i class="bi bi-chat-square-text"></i> Fault Reported / Service Requested</label>
                 <textarea class="form-control" id="faultReported" rows="4" placeholder="Describe the fault or service requested..." required></textarea>
               </div>
 
-              <!-- 5. Technical Readings -->
               <div class="section-header">
                 <h4><i class="bi bi-speedometer2"></i> Technical Readings</h4>
               </div>
@@ -475,7 +281,6 @@
                 </div>
               </div>
 
-              <!-- 6. Technical Checks & Remarks -->
               <div class="section-header">
                 <h4><i class="bi bi-check2-square"></i> Technical Checks & Remarks</h4>
               </div>
@@ -520,22 +325,17 @@
               </div>
               
               <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-journal-text"></i> Technician's Technical Remarks
-                </label>
+                <label class="form-label"><i class="bi bi-journal-text"></i> Technician's Technical Remarks</label>
                 <textarea class="form-control" id="techRemarks" rows="4" placeholder="Technical observations, recommendations, and remarks..."></textarea>
               </div>
 
-              <!-- 7. Logistics and Completion -->
               <div class="section-header">
                 <h4><i class="bi bi-truck"></i> Logistics and Completion</h4>
               </div>
               
               <div class="row">
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-person-gear"></i> Technician Name
-                  </label>
+                  <label class="form-label"><i class="bi bi-person-gear"></i> Technician Name</label>
                   <select class="form-select" id="technicianName">
                     <option value="">-- Select Technician --</option>
                     <option value="John Smith">John Smith</option>
@@ -548,70 +348,51 @@
                 </div>
                 
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-person-driving"></i> Driver Name
-                  </label>
+                  <label class="form-label"><i class="bi bi-person-driving"></i> Driver Name</label>
                   <input type="text" class="form-control" id="driverName">
                 </div>
                 
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-car-front"></i> Vehicle Number
-                  </label>
+                  <label class="form-label"><i class="bi bi-car-front"></i> Vehicle Number</label>
                   <input type="text" class="form-control" id="vehicleNumber" placeholder="e.g., ABC-1234">
                 </div>
               </div>
               
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-clock"></i> Time In
-                  </label>
+                  <label class="form-label"><i class="bi bi-clock"></i> Time In</label>
                   <input type="time" class="form-control" id="timeIn">
                 </div>
                 
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-clock-history"></i> Time Out
-                  </label>
+                  <label class="form-label"><i class="bi bi-clock-history"></i> Time Out</label>
                   <input type="time" class="form-control" id="timeOut">
                 </div>
               </div>
 
-              <!-- 8. Customer Confirmation -->
               <div class="section-header">
                 <h4><i class="bi bi-person-check"></i> Customer Confirmation</h4>
               </div>
               
               <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-chat-quote"></i> Customer Remarks
-                </label>
+                <label class="form-label"><i class="bi bi-chat-quote"></i> Customer Remarks</label>
                 <textarea class="form-control" id="customerRemarks" rows="3" placeholder="Customer feedback and remarks..."></textarea>
               </div>
               
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-pen"></i> Customer Signature
-                  </label>
+                  <label class="form-label"><i class="bi bi-pen"></i> Customer Signature</label>
                   <canvas class="signature-pad" id="customerSignature"></canvas>
                   <div class="mt-2">
-                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('customer')">
-                      <i class="bi bi-eraser"></i> Clear
-                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('customer')"><i class="bi bi-eraser"></i> Clear</button>
                   </div>
                 </div>
                 
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">
-                    <i class="bi bi-pen-fill"></i> Technician Signature
-                  </label>
+                  <label class="form-label"><i class="bi bi-pen-fill"></i> Technician Signature</label>
                   <canvas class="signature-pad" id="technicianSignature"></canvas>
                   <div class="mt-2">
-                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('technician')">
-                      <i class="bi bi-eraser"></i> Clear
-                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('technician')"><i class="bi bi-eraser"></i> Clear</button>
                   </div>
                 </div>
               </div>
@@ -623,24 +404,16 @@
               </div>
             </form>
             
-            <!-- Status Messages -->
             <div id="statusMessage" class="alert alert-custom mt-3" style="display: none;"></div>
 
-            <!-- Report Preview -->
             <div id="reportPreview" class="report-preview" style="display:none">
               <h3><i class="bi bi-file-earmark-check"></i> Service Report Preview</h3>
               <div id="previewContent"></div>
               
               <div class="mt-3 d-flex gap-2 flex-wrap">
-                <button class="btn btn-success" onclick="downloadPDF()">
-                  <i class="bi bi-file-earmark-pdf"></i> Download PDF
-                </button>
-                <button class="btn btn-info" onclick="window.print()">
-                  <i class="bi bi-printer"></i> Print Report
-                </button>
-                <button class="btn btn-warning" onclick="shareReport()">
-                  <i class="bi bi-share"></i> Share Report
-                </button>
+                <button class="btn btn-success" onclick="downloadPDF()"><i class="bi bi-file-earmark-pdf"></i> Download PDF</button>
+                <button class="btn btn-info" onclick="window.print()"><i class="bi bi-printer"></i> Print Report</button>
+                <button class="btn btn-warning" onclick="shareReport()"><i class="bi bi-share"></i> Share Report</button>
               </div>
             </div>
           </div>
@@ -649,12 +422,35 @@
     </div>
   </div>
 
-  <!-- Bootstrap JS Bundle -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
   <script>
     let customerSignaturePad, technicianSignaturePad;
     let currentReportData = null;
+    let supabase = null;
+
+    // --- SUPABASE CONFIGURATION ---
+    // 1. I have filled this in for you from your previous message:
+    const SUPABASE_URL = 'https://ezdptfskycprzmbrxspx.supabase.co';
+    
+    // 2. PASTE YOUR KEY HERE (Starts with eyJ...)
+    const SUPABASE_ANON_KEY = 'PASTE_YOUR_EYJ_KEY_HERE';
+    // -----------------------------
+
+    // Initialize Supabase connection on page load
+    function initializeSupabase() {
+      try {
+        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'PASTE_YOUR_EYJ_KEY_HERE') {
+            console.warn('Supabase Key not set yet.');
+            return;
+        }
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
+        showStatus('Database connection failed. Please check configuration.', 'danger');
+      }
+    }
 
     // Initialize signature pads
     function initializeSignaturePads() {
@@ -671,7 +467,6 @@
         penColor: 'rgb(0, 0, 0)'
       });
       
-      // Resize signature pads
       resizeSignaturePads();
     }
 
@@ -701,7 +496,6 @@
       setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
     }
 
-    // Handle technician name selection
     document.getElementById('technicianName').addEventListener('change', function() {
       const otherInput = document.getElementById('technicianNameOther');
       if (this.value === 'Other') {
@@ -714,25 +508,84 @@
       }
     });
 
+    // Save data to Supabase
+    async function saveToSupabase(formData) {
+      if (!supabase) {
+        throw new Error('Database not initialized. Please check API Key.');
+      }
+
+      const { data, error } = await supabase
+        .from('service_reports')
+        .insert([{
+            job_number: formData.jobNumber,
+            job_type: formData.jobType,
+            invoice_number: formData.invoiceNumber,
+            report_date: formData.reportDate,
+            customer_name: formData.customerName,
+            customer_address: formData.customerAddress,
+            contact_person: formData.contactPerson,
+            contact_number: formData.contactNumber,
+            ups_brand: formData.upsBrand || null,
+            ups_model: formData.upsModel || null,
+            ups_serial_number: formData.upsSerial || null,
+            ups_kva_rating: formData.upsKVA ? parseFloat(formData.upsKVA) : null,
+            ups_kw_rating: formData.upsKW ? parseFloat(formData.upsKW) : null,
+            battery_make_ah: formData.batteryMakeAH || null,
+            battery_type_quantity: formData.batteryTypeQty || null,
+            battery_date_set: formData.batteryDateSet || null,
+            reference_preparation_number: formData.referenceNumber || null,
+            fault_reported: formData.faultReported,
+            input_voltage_ln: formData.inputVoltageLN ? parseFloat(formData.inputVoltageLN) : null,
+            input_voltage_le: formData.inputVoltageLE ? parseFloat(formData.inputVoltageLE) : null,
+            input_voltage_ne: formData.inputVoltageNE ? parseFloat(formData.inputVoltageNE) : null,
+            output_voltage_ln: formData.outputVoltageLN ? parseFloat(formData.outputVoltageLN) : null,
+            output_voltage_le: formData.outputVoltageLE ? parseFloat(formData.outputVoltageLE) : null,
+            output_voltage_ne: formData.outputVoltageNE ? parseFloat(formData.outputVoltageNE) : null,
+            load_percentage: formData.loadPercentage ? parseFloat(formData.loadPercentage) : null,
+            load_amperage: formData.loadAmperage ? parseFloat(formData.loadAmperage) : null,
+            charging_current: formData.chargingCurrent ? parseFloat(formData.chargingCurrent) : null,
+            check_vip: formData.checkVIP,
+            check_smd: formData.checkSMD,
+            check_ut: formData.checkUT,
+            testing_conditions: formData.testingConditions || null,
+            additional_test_equipment_model: formData.testEquipmentModel || null,
+            additional_test_equipment_serial: formData.testEquipmentSerial || null,
+            technician_remarks: formData.techRemarks || null,
+            technician_name: formData.technicianName || null,
+            driver_name: formData.driverName || null,
+            vehicle_number: formData.vehicleNumber || null,
+            time_in: formData.timeIn || null,
+            time_out: formData.timeOut || null,
+            customer_remarks: formData.customerRemarks || null,
+            customer_signature: formData.customerSignature,
+            technician_signature: formData.technicianSignature,
+            created_at: new Date().toISOString()
+        }])
+        .select();
+
+      if (error) throw error;
+      return data[0];
+    }
+
     // Form submission
-    document.getElementById('serviceForm').addEventListener('submit', function(e) {
+    document.getElementById('serviceForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      // Collect all form data
+      const submitBtn = document.getElementById('generateBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+      submitBtn.disabled = true;
+      
+      // Collect data
       const formData = {
-        // Job Identification
         jobNumber: document.getElementById('jobNumber').value,
         jobType: document.getElementById('jobType').value,
         invoiceNumber: document.getElementById('invoiceNumber').value,
-        
-        // Customer Information
         customerName: document.getElementById('customerName').value,
         customerAddress: document.getElementById('customerAddress').value,
         contactPerson: document.getElementById('contactPerson').value,
         contactNumber: document.getElementById('contactNumber').value,
         reportDate: document.getElementById('reportDate').value,
-        
-        // UPS & Battery Details
         upsBrand: document.getElementById('upsBrand').value,
         upsModel: document.getElementById('upsModel').value,
         upsSerial: document.getElementById('upsSerial').value,
@@ -742,11 +595,7 @@
         batteryTypeQty: document.getElementById('batteryTypeQty').value,
         batteryDateSet: document.getElementById('batteryDateSet').value,
         referenceNumber: document.getElementById('referenceNumber').value,
-        
-        // Service Request Details
         faultReported: document.getElementById('faultReported').value,
-        
-        // Technical Readings
         inputVoltageLN: document.getElementById('inputVoltageLN').value,
         inputVoltageLE: document.getElementById('inputVoltageLE').value,
         inputVoltageNE: document.getElementById('inputVoltageNE').value,
@@ -756,8 +605,6 @@
         loadPercentage: document.getElementById('loadPercentage').value,
         loadAmperage: document.getElementById('loadAmperage').value,
         chargingCurrent: document.getElementById('chargingCurrent').value,
-        
-        // Technical Checks & Remarks
         checkVIP: document.getElementById('checkVIP').checked,
         checkSMD: document.getElementById('checkSMD').checked,
         checkUT: document.getElementById('checkUT').checked,
@@ -765,8 +612,6 @@
         testEquipmentModel: document.getElementById('testEquipmentModel').value,
         testEquipmentSerial: document.getElementById('testEquipmentSerial').value,
         techRemarks: document.getElementById('techRemarks').value,
-        
-        // Logistics and Completion
         technicianName: document.getElementById('technicianName').value === 'Other' ? 
                        document.getElementById('technicianNameOther').value : 
                        document.getElementById('technicianName').value,
@@ -774,32 +619,46 @@
         vehicleNumber: document.getElementById('vehicleNumber').value,
         timeIn: document.getElementById('timeIn').value,
         timeOut: document.getElementById('timeOut').value,
-        
-        // Customer Confirmation
         customerRemarks: document.getElementById('customerRemarks').value,
         customerSignature: customerSignaturePad.isEmpty() ? null : customerSignaturePad.toDataURL(),
         technicianSignature: technicianSignaturePad.isEmpty() ? null : technicianSignaturePad.toDataURL()
       };
 
-      // Validate required fields
+      // Validate required
       const requiredFields = ['jobNumber', 'jobType', 'invoiceNumber', 'customerName', 'contactPerson', 'customerAddress', 'contactNumber', 'reportDate', 'faultReported'];
-      
       for (let field of requiredFields) {
         if (!formData[field]) {
           showStatus(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}.`, 'danger');
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
           return;
         }
       }
 
-      currentReportData = formData;
-      generatePreview();
-      showStatus('Service report generated successfully!', 'success');
+      try {
+        // Attempt save
+        if(supabase) {
+             const savedReport = await saveToSupabase(formData);
+             showStatus(`Saved successfully! Report ID: ${savedReport.id}`, 'success');
+        } else {
+             showStatus('Preview generated (Not saved to database - Key missing)', 'warning');
+        }
+        
+        currentReportData = formData;
+        generatePreview();
+        
+      } catch (error) {
+        showStatus('Error saving report: ' + error.message, 'danger');
+        console.error('Save error:', error);
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
     });
 
     function generatePreview() {
       const data = currentReportData;
       const previewContent = document.getElementById('previewContent');
-      
       let componentChecks = [];
       if (data.checkVIP) componentChecks.push('VIP');
       if (data.checkSMD) componentChecks.push('SMD');
@@ -813,14 +672,12 @@
             <p><strong>Job Type:</strong> ${data.jobType}</p>
             <p><strong>Invoice Number:</strong> ${data.invoiceNumber}</p>
             <p><strong>Report Date:</strong> ${data.reportDate}</p>
-            
             <h5 class="mt-3">Customer Information</h5>
             <p><strong>Customer:</strong> ${data.customerName}</p>
             <p><strong>Contact Person:</strong> ${data.contactPerson}</p>
             <p><strong>Contact Number:</strong> ${data.contactNumber}</p>
             <p><strong>Address:</strong> ${data.customerAddress}</p>
           </div>
-          
           <div class="col-md-6">
             <h5>UPS Details</h5>
             <p><strong>Brand:</strong> ${data.upsBrand || 'N/A'}</p>
@@ -828,130 +685,76 @@
             <p><strong>Serial:</strong> ${data.upsSerial || 'N/A'}</p>
             <p><strong>KVA Rating:</strong> ${data.upsKVA || 'N/A'}</p>
             <p><strong>kW Rating:</strong> ${data.upsKW || 'N/A'}</p>
-            
             <h5 class="mt-3">Service Details</h5>
             <p><strong>Technician:</strong> ${data.technicianName}</p>
             <p><strong>Time:</strong> ${data.timeIn || 'N/A'} - ${data.timeOut || 'N/A'}</p>
             <p><strong>Component Checks:</strong> ${componentChecks.join(', ') || 'None'}</p>
           </div>
         </div>
-        
         <div class="mt-3">
           <h5>Fault Reported</h5>
           <p>${data.faultReported}</p>
         </div>
-        
-        ${data.techRemarks ? `
-        <div class="mt-3">
-          <h5>Technical Remarks</h5>
-          <p>${data.techRemarks}</p>
-        </div>
-        ` : ''}
-        
-        ${data.customerRemarks ? `
-        <div class="mt-3">
-          <h5>Customer Remarks</h5>
-          <p>${data.customerRemarks}</p>
-        </div>
-        ` : ''}
+        ${data.techRemarks ? `<div class="mt-3"><h5>Technical Remarks</h5><p>${data.techRemarks}</p></div>` : ''}
+        ${data.customerRemarks ? `<div class="mt-3"><h5>Customer Remarks</h5><p>${data.customerRemarks}</p></div>` : ''}
       `;
-      
       document.getElementById('reportPreview').style.display = 'block';
     }
 
     async function downloadPDF() {
-      if (!currentReportData) {
-        showStatus('No report data available to download.', 'danger');
-        return;
-      }
-
+      if (!currentReportData) { showStatus('No report data available to download.', 'danger'); return; }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const data = currentReportData;
-
-      // Add company header
-      doc.setFontSize(20);
-      doc.setTextColor(46, 125, 50);
-      doc.text('Debug Computer Peripherals', 20, 20);
-      doc.setFontSize(12);
-      doc.setTextColor(100);
-      doc.text('Service Report', 20, 30);
-
-      // Job Information
-      doc.setFontSize(10);
+      
+      doc.setFontSize(20); doc.setTextColor(46, 125, 50); doc.text('Debug Computer Peripherals', 20, 20);
+      doc.setFontSize(12); doc.setTextColor(100); doc.text('Service Report', 20, 30);
+      doc.setFontSize(10); doc.setTextColor(0);
+      
       let yPos = 50;
       doc.text(`Job Number: ${data.jobNumber}`, 20, yPos);
       doc.text(`Job Type: ${data.jobType}`, 20, yPos + 10);
       doc.text(`Invoice Number: ${data.invoiceNumber}`, 20, yPos + 20);
       doc.text(`Report Date: ${data.reportDate}`, 20, yPos + 30);
-
-      // Customer Information
+      
       yPos += 50;
       doc.text(`Customer: ${data.customerName}`, 20, yPos);
       doc.text(`Contact Person: ${data.contactPerson}`, 20, yPos + 10);
       doc.text(`Contact Number: ${data.contactNumber}`, 20, yPos + 20);
       doc.text(`Address: ${data.customerAddress}`, 20, yPos + 30, { maxWidth: 160 });
-
-      // UPS Details
+      
       yPos += 60;
       doc.text(`UPS Brand: ${data.upsBrand || 'N/A'}`, 20, yPos);
       doc.text(`UPS Model: ${data.upsModel || 'N/A'}`, 20, yPos + 10);
       doc.text(`UPS Serial: ${data.upsSerial || 'N/A'}`, 20, yPos + 20);
-
-      // Service Details
+      
       yPos += 40;
       doc.text(`Technician: ${data.technicianName}`, 20, yPos);
       doc.text(`Time: ${data.timeIn || 'N/A'} - ${data.timeOut || 'N/A'}`, 20, yPos + 10);
-
-      // Fault Reported
+      
       yPos += 30;
       doc.text('Fault Reported:', 20, yPos);
       doc.text(data.faultReported, 20, yPos + 10, { maxWidth: 160 });
-
-      // Save PDF
+      
       doc.save(`Service_Report_${data.jobNumber}.pdf`);
     }
 
     function shareReport() {
-      if (!currentReportData) {
-        showStatus('No report data available to share.', 'danger');
-        return;
-      }
-
+      if (!currentReportData) { showStatus('No report data available to share.', 'danger'); return; }
       const data = currentReportData;
       const subject = `Service Report ${data.jobNumber} - Debug Computer Peripherals`;
-      const body = `
-Service Report Details:
-
-Job Number: ${data.jobNumber}
-Job Type: ${data.jobType}
-Customer: ${data.customerName}
-Contact Person: ${data.contactPerson}
-Report Date: ${data.reportDate}
-Technician: ${data.technicianName}
-
-Fault Reported: ${data.faultReported}
-
-Best regards,
-Debug Computer Peripherals
-      `;
-
-      const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailtoLink;
+      const body = `Service Report Details:\n\nJob Number: ${data.jobNumber}\nCustomer: ${data.customerName}\nFault: ${data.faultReported}`;
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 
-    // Initialize when page loads
     window.addEventListener('load', function() {
+      initializeSupabase();
       initializeSignaturePads();
-      
-      // Set current date as default
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('reportDate').value = today;
     });
 
-    // Handle window resize
     window.addEventListener('resize', resizeSignaturePads);
   </script>
 </body>
 </html>
-
