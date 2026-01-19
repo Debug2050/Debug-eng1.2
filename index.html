@@ -374,12 +374,12 @@
     let currentReportData = null;
 
     // TODO: PUT YOUR KEYS HERE
-    const supabaseUrl = 'https://ezdptfskycprzmbrxspx.supabase.co'; 
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU';
+    const supabaseUrl = 'YOUR_SUPABASE_URL_HERE'; 
+    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
 
     // Try to connect
     try {
-      if (supabaseUrl !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU' && typeof supabase !== 'undefined') {
+      if (supabaseUrl !== 'YOUR_SUPABASE_URL_HERE' && typeof supabase !== 'undefined') {
         supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
       } else {
         console.warn("Supabase keys not set.");
@@ -474,7 +474,7 @@
     }
 
     // ==========================================
-    // 4. SAVE TO DATABASE FUNCTION (NEW)
+    // 4. SAVE TO DATABASE FUNCTION
     // ==========================================
     async function saveToDatabase(data) {
         if (!supabaseClient) {
@@ -482,8 +482,6 @@
             return { error: "Database not configured" };
         }
 
-        // Map JS camelCase variables to Supabase snake_case columns
-        // NOTE: Ensure these column names exist in your Supabase table!
         const dbPayload = {
             job_number: data.jobNumber,
             job_type: data.jobType,
@@ -525,7 +523,6 @@
             time_in: data.timeIn || null,
             time_out: data.timeOut || null,
             customer_remarks: data.customerRemarks,
-            // Signatures stored as text (Base64 strings)
             customer_signature: data.customerSignature,
             technician_signature: data.technicianSignature
         };
@@ -679,6 +676,9 @@
       document.getElementById('reportPreview').style.display = 'block';
     }
 
+    // ==========================================
+    // 6. PDF GENERATION (UPDATED WITH ALL DATA)
+    // ==========================================
     async function downloadPDF() {
       if (!currentReportData) return;
       if (!window.jspdf) { alert("PDF Library not loaded."); return; }
@@ -687,78 +687,170 @@
       const doc = new jsPDF();
       const data = currentReportData;
 
-      doc.setFontSize(20);
-      doc.setTextColor(46, 125, 50);
-      doc.text('Debug Computer Peripherals', 20, 20);
+      // Helper for checks
+      const checks = [];
+      if(data.checkVIP) checks.push("VIP");
+      if(data.checkSMD) checks.push("SMD");
+      if(data.checkUT) checks.push("UT");
+      const checkString = checks.length > 0 ? checks.join(", ") : "None";
+
+      // Formatting constants
+      const leftCol = 15;
+      const rightCol = 110;
+      const lineHeight = 7;
+      let y = 20;
+
+      // TITLE
+      doc.setFontSize(18);
+      doc.setTextColor(46, 125, 50); // Green
+      doc.text('Debug Computer Peripherals', 105, y, { align: 'center' });
+      y += 8;
       doc.setFontSize(12);
       doc.setTextColor(100);
-      doc.text('Service Report', 20, 30);
+      doc.text('Service Report', 105, y, { align: 'center' });
+      y += 12;
+
+      // Draw Line
+      doc.setDrawColor(46, 125, 50);
+      doc.setLineWidth(0.5);
+      doc.line(15, y, 195, y);
+      y += 10;
 
       doc.setFontSize(10);
       doc.setTextColor(0);
-      let yPos = 50;
-      doc.text(`Job Number: ${data.jobNumber}`, 20, yPos);
-      doc.text(`Job Type: ${data.jobType}`, 20, yPos + 7);
-      doc.text(`Invoice Number: ${data.invoiceNumber}`, 20, yPos + 14);
-      doc.text(`Report Date: ${data.reportDate}`, 20, yPos + 21);
 
-      yPos += 35;
-      doc.setFontSize(12);
-      doc.setTextColor(46, 125, 50);
-      doc.text("Customer Information", 20, yPos);
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-      yPos += 7;
-      doc.text(`Customer: ${data.customerName}`, 20, yPos);
-      doc.text(`Contact: ${data.contactPerson} (${data.contactNumber})`, 20, yPos + 7);
-      doc.text(`Address: ${data.customerAddress}`, 20, yPos + 14, { maxWidth: 160 });
+      // --- SECTION 1: JOB & CUSTOMER ---
+      doc.setFont(undefined, 'bold');
+      doc.text("Job & Customer Details", leftCol, y);
+      doc.setFont(undefined, 'normal');
+      y += lineHeight;
 
-      yPos += 30;
-      doc.setFontSize(12);
-      doc.setTextColor(46, 125, 50);
-      doc.text("UPS & Battery Details", 20, yPos);
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-      yPos += 7;
-      doc.text(`UPS: ${data.upsBrand} ${data.upsModel || ''}`, 20, yPos);
-      doc.text(`Serial: ${data.upsSerial || '-'}`, 100, yPos);
-      yPos += 7;
-      doc.text(`Rating: ${data.upsKVA || '-'} KVA / ${data.upsKW || '-'} kW`, 20, yPos);
-      doc.text(`Battery: ${data.batteryMakeAH || '-'}`, 100, yPos);
-
-      yPos += 15;
-      doc.setFontSize(12);
-      doc.setTextColor(46, 125, 50);
-      doc.text("Technical Readings", 20, yPos);
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-      yPos += 7;
-      doc.text("Input (L/N): " + (data.inputVoltageLN || '-') + " V", 20, yPos);
-      doc.text("Output (L/N): " + (data.outputVoltageLN || '-') + " V", 80, yPos);
-      doc.text("Load: " + (data.loadPercentage || '-') + " %", 140, yPos);
-      yPos += 7;
-      doc.text("Input (L/E): " + (data.inputVoltageLE || '-') + " V", 20, yPos);
-      doc.text("Output (L/E): " + (data.outputVoltageLE || '-') + " V", 80, yPos);
-      doc.text("Amperage: " + (data.loadAmperage || '-') + " A", 140, yPos);
+      doc.text(`Job No: ${data.jobNumber}`, leftCol, y);
+      doc.text(`Date: ${data.reportDate}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Job Type: ${data.jobType}`, leftCol, y);
+      doc.text(`Invoice: ${data.invoiceNumber}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Customer: ${data.customerName}`, leftCol, y);
+      doc.text(`Contact: ${data.contactPerson} (${data.contactNumber})`, rightCol, y);
+      y += lineHeight;
       
-      yPos += 15;
-      doc.setFontSize(12);
-      doc.setTextColor(46, 125, 50);
-      doc.text("Fault Reported", 20, yPos);
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-      yPos += 7;
-      doc.text(data.faultReported, 20, yPos, { maxWidth: 170 });
-      yPos += 20;
+      // Address might be long, split it
+      const addressLines = doc.splitTextToSize(`Address: ${data.customerAddress}`, 180);
+      doc.text(addressLines, leftCol, y);
+      y += (addressLines.length * lineHeight) + 3;
 
+      // --- SECTION 2: EQUIPMENT DETAILS ---
+      doc.setFont(undefined, 'bold');
+      doc.text("Equipment (UPS & Battery)", leftCol, y);
+      doc.setFont(undefined, 'normal');
+      y += lineHeight;
+
+      doc.text(`UPS: ${data.upsBrand} ${data.upsModel || ''}`, leftCol, y);
+      doc.text(`Serial: ${data.upsSerial || '-'}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Rating: ${data.upsKVA || '-'} KVA / ${data.upsKW || '-'} kW`, leftCol, y);
+      doc.text(`Ref/Prep No: ${data.referenceNumber || '-'}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Battery: ${data.batteryMakeAH || '-'}`, leftCol, y);
+      doc.text(`Type/Qty: ${data.batteryTypeQty || '-'}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Batt Date Set: ${data.batteryDateSet || '-'}`, leftCol, y);
+      y += lineHeight + 3;
+
+      // --- SECTION 3: TECHNICAL READINGS ---
+      doc.setFont(undefined, 'bold');
+      doc.text("Technical Readings", leftCol, y);
+      doc.setFont(undefined, 'normal');
+      y += lineHeight;
+
+      // Header row for table-like structure
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text("Parameter", leftCol, y);
+      doc.text("Input", leftCol + 40, y);
+      doc.text("Output", leftCol + 80, y);
+      doc.text("Others", leftCol + 120, y);
+      y += 5;
+      doc.setTextColor(0);
+      doc.setFontSize(10);
+
+      doc.text("L-N Voltage:", leftCol, y);
+      doc.text(`${data.inputVoltageLN || '-'} V`, leftCol + 40, y);
+      doc.text(`${data.outputVoltageLN || '-'} V`, leftCol + 80, y);
+      doc.text(`Load: ${data.loadPercentage || '-'} %`, leftCol + 120, y);
+      y += 6;
+
+      doc.text("L-E Voltage:", leftCol, y);
+      doc.text(`${data.inputVoltageLE || '-'} V`, leftCol + 40, y);
+      doc.text(`${data.outputVoltageLE || '-'} V`, leftCol + 80, y);
+      doc.text(`Amps: ${data.loadAmperage || '-'} A`, leftCol + 120, y);
+      y += 6;
+
+      doc.text("N-E Voltage:", leftCol, y);
+      doc.text(`${data.inputVoltageNE || '-'} V`, leftCol + 40, y);
+      doc.text(`${data.outputVoltageNE || '-'} V`, leftCol + 80, y);
+      doc.text(`Chg Curr: ${data.chargingCurrent || '-'} A`, leftCol + 120, y);
+      y += lineHeight + 3;
+
+      // --- SECTION 4: CHECKS & LOGISTICS ---
+      doc.setFont(undefined, 'bold');
+      doc.text("Checks, Logistics & Remarks", leftCol, y);
+      doc.setFont(undefined, 'normal');
+      y += lineHeight;
+
+      doc.text(`Checks: ${checkString}`, leftCol, y);
+      doc.text(`Condition: ${data.testingConditions || '-'}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Test Equip: ${data.testEquipmentModel || '-'}`, leftCol, y);
+      doc.text(`Serial: ${data.testEquipmentSerial || '-'}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Technician: ${data.technicianName}`, leftCol, y);
+      doc.text(`Time: ${data.timeIn || '--:--'} to ${data.timeOut || '--:--'}`, rightCol, y);
+      y += lineHeight;
+      doc.text(`Driver: ${data.driverName || '-'}`, leftCol, y);
+      doc.text(`Vehicle: ${data.vehicleNumber || '-'}`, rightCol, y);
+      y += lineHeight + 5;
+
+      // --- REMARKS BLOCKS ---
+      const faultLines = doc.splitTextToSize(`Fault Reported: ${data.faultReported}`, 180);
+      doc.text(faultLines, leftCol, y);
+      y += (faultLines.length * 5) + 3;
+
+      if (data.techRemarks) {
+        const techLines = doc.splitTextToSize(`Tech Remarks: ${data.techRemarks}`, 180);
+        doc.text(techLines, leftCol, y);
+        y += (techLines.length * 5) + 3;
+      }
+
+      if (data.customerRemarks) {
+        const custLines = doc.splitTextToSize(`Customer Remarks: ${data.customerRemarks}`, 180);
+        doc.text(custLines, leftCol, y);
+        y += (custLines.length * 5) + 3;
+      }
+
+      // --- SIGNATURES ---
+      // Ensure we have space at the bottom, else add page
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      } else {
+        y += 10;
+      }
+
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      
       if(data.customerSignature) {
-          doc.text("Customer Signature:", 20, yPos);
-          doc.addImage(data.customerSignature, 'PNG', 20, yPos + 5, 40, 20);
+          doc.text("Customer Signature", leftCol, y);
+          doc.addImage(data.customerSignature, 'PNG', leftCol, y + 2, 50, 25);
       }
+      
       if(data.technicianSignature) {
-          doc.text("Technician Signature:", 100, yPos);
-          doc.addImage(data.technicianSignature, 'PNG', 100, yPos + 5, 40, 20);
+          doc.text("Technician Signature", rightCol, y);
+          doc.addImage(data.technicianSignature, 'PNG', rightCol, y + 2, 50, 25);
       }
+
       doc.save(`Service_Report_${data.jobNumber}.pdf`);
     }
 
@@ -782,4 +874,3 @@
   </script>
 </body>
 </html>
-
