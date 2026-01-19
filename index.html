@@ -15,56 +15,33 @@
   <style>
     * { font-family: 'Poppins', sans-serif; }
     body { background: linear-gradient(135deg, #4CAF50, #81C784); min-height: 100vh; padding: 20px 0; }
-    
     .main-container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden; max-width: 1200px; margin: 0 auto; }
-    
-    .header-section { background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 2rem 0; text-align: center; position: relative; }
+    .header-section { background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 2rem 0; text-align: center; }
     .header-section h1 { font-weight: 700; margin-bottom: 0.5rem; font-size: 2.5rem; }
     .header-section p { opacity: 0.9; font-size: 1.1rem; margin-bottom: 0; }
-    
-    /* Connection Badge */
-    .connection-badge {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: rgba(0,0,0,0.2);
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        backdrop-filter: blur(5px);
-    }
-    .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; }
-    .status-online { background-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
-    .status-offline { background-color: #ff4444; box-shadow: 0 0 10px #ff4444; }
-
     .form-section { padding: 2rem; }
     .section-header { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 1rem; margin: 2rem 0 1rem 0; text-align: center; }
     .section-header h4 { color: #2E7D32; font-weight: 700; margin: 0; }
-    
     .form-label { font-weight: 600; color: #2E7D32; margin-bottom: 0.5rem; }
     .form-control, .form-select { border-radius: 10px; border: 2px solid #e9ecef; padding: 0.75rem; transition: all 0.3s ease; }
     .form-control:focus, .form-select:focus { border-color: #4CAF50; box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25); }
-    
     .btn-primary { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease; }
     .btn-primary:hover { background: linear-gradient(135deg, #388E3C, #4CAF50); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
-    
+    .btn-info { background: linear-gradient(135deg, #2196F3, #42A5F5); border: none; border-radius: 10px; font-weight: 600; }
+    .btn-warning { background: linear-gradient(135deg, #FF9800, #FFB74D); border: none; border-radius: 10px; font-weight: 600; }
+    .btn-success { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; font-weight: 600; }
     .signature-pad { border: 2px solid #e9ecef; border-radius: 10px; width: 100%; height: 150px; }
     .component-checks { display: flex; gap: 2rem; flex-wrap: wrap; align-items: center; }
     .form-check { margin-bottom: 0; }
     .form-check-input:checked { background-color: #4CAF50; border-color: #4CAF50; }
-    
     .report-preview { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 2rem; margin-top: 2rem; }
     .report-preview h3 { color: #2E7D32; font-weight: 700; margin-bottom: 1.5rem; }
     .alert-custom { border: none; border-radius: 10px; font-weight: 500; }
     
     @media (max-width: 768px) {
       .header-section h1 { font-size: 2rem; }
-      .connection-badge { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.8rem; }
       .form-section { padding: 1rem; }
+      .component-checks { flex-direction: column; align-items: flex-start; gap: 1rem; }
     }
   </style>
 </head>
@@ -74,10 +51,6 @@
       <div class="col-12">
         <div class="main-container">
           <div class="header-section">
-            <div id="connectionStatus" class="connection-badge">
-                <span class="status-dot status-offline" id="statusDot"></span>
-                <span id="statusText">Connecting...</span>
-            </div>
             <h1><i class="bi bi-tools"></i> Debug Computer Peripherals</h1>
             <p>Professional Service Report Generator</p>
           </div>
@@ -457,36 +430,25 @@
     let supabase = null;
 
     // --- SUPABASE CONFIGURATION ---
+    // 1. I have filled this in for you from your previous message:
     const SUPABASE_URL = 'https://ezdptfskycprzmbrxspx.supabase.co';
     
-    // -------------------------------------------------------------
-    // >>>>> PASTE YOUR KEY BELOW <<<<<
-    const SUPABASE_ANON_KEY = 'PASTE_YOUR_KEY_HERE';
-    // -------------------------------------------------------------
+    // 2. PASTE YOUR KEY HERE (Starts with eyJ...)
+    const SUPABASE_ANON_KEY = 'PASTE_YOUR_EYJ_KEY_HERE';
+    // -----------------------------
 
-    // Initialize Supabase connection
-    async function initializeSupabase() {
-      const statusText = document.getElementById('statusText');
-      const statusDot = document.getElementById('statusDot');
-
+    // Initialize Supabase connection on page load
+    function initializeSupabase() {
       try {
-        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('PASTE_YOUR_KEY_HERE')) {
-            throw new Error('Key not set');
+        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'PASTE_YOUR_EYJ_KEY_HERE') {
+            console.warn('Supabase Key not set yet.');
+            return;
         }
-
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const { count, error } = await supabase.from('service_reports').select('*', { count: 'exact', head: true });
-        
-        if (error) throw error;
-
         console.log('Supabase initialized successfully');
-        statusText.textContent = 'System Online';
-        statusDot.className = 'status-dot status-online';
       } catch (error) {
-        console.error('Connection Check Failed:', error);
-        statusText.textContent = 'Database Offline (Mode: Preview Only)';
-        statusDot.className = 'status-dot status-offline';
-        // We do NOT show a big alert here, we just set the badge.
+        console.error('Failed to initialize Supabase:', error);
+        showStatus('Database connection failed. Please check configuration.', 'danger');
       }
     }
 
@@ -495,8 +457,16 @@
       const customerCanvas = document.getElementById('customerSignature');
       const technicianCanvas = document.getElementById('technicianSignature');
       
-      customerSignaturePad = new SignaturePad(customerCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
-      technicianSignaturePad = new SignaturePad(technicianCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
+      customerSignaturePad = new SignaturePad(customerCanvas, {
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        penColor: 'rgb(0, 0, 0)'
+      });
+      
+      technicianSignaturePad = new SignaturePad(technicianCanvas, {
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        penColor: 'rgb(0, 0, 0)'
+      });
+      
       resizeSignaturePads();
     }
 
@@ -511,8 +481,11 @@
     }
 
     function clearSignature(type) {
-      if (type === 'customer') customerSignaturePad.clear();
-      else technicianSignaturePad.clear();
+      if (type === 'customer') {
+        customerSignaturePad.clear();
+      } else {
+        technicianSignaturePad.clear();
+      }
     }
 
     function showStatus(message, type = 'success') {
@@ -520,19 +493,30 @@
       statusElement.textContent = message;
       statusElement.className = `alert alert-${type} alert-custom`;
       statusElement.style.display = 'block';
-      setTimeout(() => { statusElement.style.display = 'none'; }, 8000);
+      setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
     }
 
     document.getElementById('technicianName').addEventListener('change', function() {
       const otherInput = document.getElementById('technicianNameOther');
-      if (this.value === 'Other') { otherInput.style.display = 'block'; otherInput.required = true; } 
-      else { otherInput.style.display = 'none'; otherInput.required = false; otherInput.value = ''; }
+      if (this.value === 'Other') {
+        otherInput.style.display = 'block';
+        otherInput.required = true;
+      } else {
+        otherInput.style.display = 'none';
+        otherInput.required = false;
+        otherInput.value = '';
+      }
     });
 
     // Save data to Supabase
     async function saveToSupabase(formData) {
-      if (!supabase) throw new Error('Offline');
-      const { data, error } = await supabase.from('service_reports').insert([{
+      if (!supabase) {
+        throw new Error('Database not initialized. Please check API Key.');
+      }
+
+      const { data, error } = await supabase
+        .from('service_reports')
+        .insert([{
             job_number: formData.jobNumber,
             job_type: formData.jobType,
             invoice_number: formData.invoiceNumber,
@@ -576,7 +560,8 @@
             customer_signature: formData.customerSignature,
             technician_signature: formData.technicianSignature,
             created_at: new Date().toISOString()
-      }]).select();
+        }])
+        .select();
 
       if (error) throw error;
       return data[0];
@@ -588,9 +573,10 @@
       
       const submitBtn = document.getElementById('generateBtn');
       const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
       submitBtn.disabled = true;
       
+      // Collect data
       const formData = {
         jobNumber: document.getElementById('jobNumber').value,
         jobType: document.getElementById('jobType').value,
@@ -638,6 +624,7 @@
         technicianSignature: technicianSignaturePad.isEmpty() ? null : technicianSignaturePad.toDataURL()
       };
 
+      // Validate required
       const requiredFields = ['jobNumber', 'jobType', 'invoiceNumber', 'customerName', 'contactPerson', 'customerAddress', 'contactNumber', 'reportDate', 'faultReported'];
       for (let field of requiredFields) {
         if (!formData[field]) {
@@ -648,26 +635,25 @@
         }
       }
 
-      // SAFE MODE LOGIC
-      // If Database works, save it. If not, skip save and show preview anyway.
       try {
+        // Attempt save
         if(supabase) {
              const savedReport = await saveToSupabase(formData);
-             showStatus(`Saved to Database! ID: ${savedReport.id}`, 'success');
+             showStatus(`Saved successfully! Report ID: ${savedReport.id}`, 'success');
         } else {
-             throw new Error('Supabase not initialized');
+             showStatus('Preview generated (Not saved to database - Key missing)', 'warning');
         }
+        
+        currentReportData = formData;
+        generatePreview();
+        
       } catch (error) {
-        // Even if save fails, we still allow PDF generation
-        console.warn('Database save failed, continuing to preview:', error);
-        showStatus('Offline Mode: Report generated locally (Not saved to DB)', 'warning');
+        showStatus('Error saving report: ' + error.message, 'danger');
+        console.error('Save error:', error);
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
       }
-
-      currentReportData = formData;
-      generatePreview();
-      
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
     });
 
     function generatePreview() {
@@ -716,7 +702,7 @@
     }
 
     async function downloadPDF() {
-      if (!currentReportData) { showStatus('No report data available.', 'danger'); return; }
+      if (!currentReportData) { showStatus('No report data available to download.', 'danger'); return; }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const data = currentReportData;
@@ -754,7 +740,7 @@
     }
 
     function shareReport() {
-      if (!currentReportData) { showStatus('No report data available.', 'danger'); return; }
+      if (!currentReportData) { showStatus('No report data available to share.', 'danger'); return; }
       const data = currentReportData;
       const subject = `Service Report ${data.jobNumber} - Debug Computer Peripherals`;
       const body = `Service Report Details:\n\nJob Number: ${data.jobNumber}\nCustomer: ${data.customerName}\nFault: ${data.faultReported}`;
