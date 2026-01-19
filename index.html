@@ -94,11 +94,6 @@
       box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
     }
     
-    .form-control:read-only {
-      background-color: #f8f9fa;
-      border-color: #dee2e6;
-    }
-    
     .btn-primary {
       background: linear-gradient(135deg, #4CAF50, #66BB6A);
       border: none;
@@ -183,40 +178,6 @@
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
     }
-
-    .autocomplete-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 2px solid #4CAF50;
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
-    }
-
-    .autocomplete-item {
-      padding: 0.75rem;
-      cursor: pointer;
-      border-bottom: 1px solid #e9ecef;
-      transition: background-color 0.2s;
-    }
-
-    .autocomplete-item:hover {
-      background-color: #f8f9fa;
-    }
-
-    .autocomplete-item:last-child {
-      border-bottom: none;
-    }
-
-    .autocomplete-container {
-      position: relative;
-    }
     
     @media (max-width: 768px) {
       .header-section h1 {
@@ -258,9 +219,9 @@
               <div class="row">
                 <div class="col-md-4 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-hash"></i> Job Number <small class="text-muted">(Auto-generated)</small>
+                    <i class="bi bi-hash"></i> Job Number
                   </label>
-                  <input type="text" class="form-control" id="jobNumber" readonly required>
+                  <input type="text" class="form-control" id="jobNumber" required>
                 </div>
                 
                 <div class="col-md-4 mb-3">
@@ -294,17 +255,14 @@
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-building"></i> Customer Name <small class="text-muted">(Type to search)</small>
+                    <i class="bi bi-building"></i> Customer Name
                   </label>
-                  <div class="autocomplete-container">
-                    <input type="text" class="form-control" id="customerName" required autocomplete="off">
-                    <div class="autocomplete-dropdown" id="customerDropdown"></div>
-                  </div>
+                  <input type="text" class="form-control" id="customerName" required>
                 </div>
                 
                 <div class="col-md-6 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-person-badge"></i> Contact Person <small class="text-muted">(Auto-filled)</small>
+                    <i class="bi bi-person-badge"></i> Contact Person
                   </label>
                   <input type="text" class="form-control" id="contactPerson" required>
                 </div>
@@ -313,7 +271,7 @@
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label">
-                    <i class="bi bi-geo-alt"></i> Customer Address <small class="text-muted">(Auto-filled)</small>
+                    <i class="bi bi-geo-alt"></i> Customer Address
                   </label>
                   <textarea class="form-control" id="customerAddress" rows="3" required></textarea>
                 </div>
@@ -660,7 +618,7 @@
 
               <div class="text-center mt-4">
                 <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
-                  <i class="bi bi-file-earmark-text"></i> Generate & Save Service Report
+                  <i class="bi bi-file-earmark-text"></i> Generate Service Report
                 </button>
               </div>
             </form>
@@ -697,156 +655,6 @@
   <script>
     let customerSignaturePad, technicianSignaturePad;
     let currentReportData = null;
-    let supabase = null;
-    let customerData = [];
-
-    // Supabase configuration - Replace with your actual credentials
-    const SUPABASE_URL = 'https://ezdptfskycprzmbrxspx.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_4Q8LvwjhDQLuTBUJigy2WQ_B9zV826S';
-
-    // Initialize Supabase connection on page load
-    function initializeSupabase() {
-      try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase initialized successfully');
-        loadCustomerData();
-      } catch (error) {
-        console.error('Failed to initialize Supabase:', error);
-        showStatus('Database connection failed. Please check configuration.', 'danger');
-      }
-    }
-
-    // Generate auto job number
-    async function generateJobNumber() {
-      if (!supabase) {
-        console.warn('Supabase not initialized, using fallback job number');
-        return generateFallbackJobNumber();
-      }
-
-      try {
-        // Get the latest job number from database
-        const { data, error } = await supabase
-          .from('service_reports')
-          .select('job_number')
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (error) throw error;
-
-        let nextNumber = 1;
-        if (data && data.length > 0) {
-          const lastJobNumber = data[0].job_number;
-          // Extract number from job number (assuming format like "SR-2025-001")
-          const match = lastJobNumber.match(/(\d+)$/);
-          if (match) {
-            nextNumber = parseInt(match[1]) + 1;
-          }
-        }
-
-        // Format: SR-YYYY-NNN
-        const year = new Date().getFullYear();
-        const formattedNumber = nextNumber.toString().padStart(3, '0');
-        return `SR-${year}-${formattedNumber}`;
-      } catch (error) {
-        console.error('Error generating job number:', error);
-        return generateFallbackJobNumber();
-      }
-    }
-
-    // Fallback job number generation
-    function generateFallbackJobNumber() {
-      const year = new Date().getFullYear();
-      const timestamp = Date.now().toString().slice(-6);
-      return `SR-${year}-${timestamp}`;
-    }
-
-    // Load customer data for autocomplete
-    async function loadCustomerData() {
-      if (!supabase) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('service_reports')
-          .select('customer_name, contact_person, customer_address, contact_number')
-          .order('customer_name');
-
-        if (error) throw error;
-
-        // Remove duplicates based on customer_name
-        const uniqueCustomers = [];
-        const seen = new Set();
-        
-        data.forEach(customer => {
-          if (!seen.has(customer.customer_name.toLowerCase())) {
-            seen.add(customer.customer_name.toLowerCase());
-            uniqueCustomers.push(customer);
-          }
-        });
-
-        customerData = uniqueCustomers;
-        console.log('Loaded customer data:', customerData.length, 'unique customers');
-      } catch (error) {
-        console.error('Error loading customer data:', error);
-      }
-    }
-
-    // Setup customer autocomplete
-    function setupCustomerAutocomplete() {
-      const customerNameInput = document.getElementById('customerName');
-      const dropdown = document.getElementById('customerDropdown');
-
-      customerNameInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        
-        if (query.length < 2) {
-          dropdown.style.display = 'none';
-          return;
-        }
-
-        const matches = customerData.filter(customer => 
-          customer.customer_name.toLowerCase().includes(query)
-        );
-
-        if (matches.length === 0) {
-          dropdown.style.display = 'none';
-          return;
-        }
-
-        dropdown.innerHTML = '';
-        matches.slice(0, 5).forEach(customer => {
-          const item = document.createElement('div');
-          item.className = 'autocomplete-item';
-          item.innerHTML = `
-            <strong>${customer.customer_name}</strong><br>
-            <small class="text-muted">${customer.contact_person} - ${customer.customer_address.substring(0, 50)}...</small>
-          `;
-          
-          item.addEventListener('click', function() {
-            selectCustomer(customer);
-            dropdown.style.display = 'none';
-          });
-          
-          dropdown.appendChild(item);
-        });
-
-        dropdown.style.display = 'block';
-      });
-
-      // Hide dropdown when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!customerNameInput.contains(e.target) && !dropdown.contains(e.target)) {
-          dropdown.style.display = 'none';
-        }
-      });
-    }
-
-    // Select customer and fill related fields
-    function selectCustomer(customer) {
-      document.getElementById('customerName').value = customer.customer_name;
-      document.getElementById('contactPerson').value = customer.contact_person;
-      document.getElementById('customerAddress').value = customer.customer_address;
-      document.getElementById('contactNumber').value = customer.contact_number;
-    }
 
     // Initialize signature pads
     function initializeSignaturePads() {
@@ -906,102 +714,9 @@
       }
     });
 
-    // Save data to Supabase single table
-    async function saveToSupabase(formData) {
-      if (!supabase) {
-        throw new Error('Database not initialized. Please refresh the page.');
-      }
-
-      try {
-        // Insert all data into single service_reports table
-        const { data, error } = await supabase
-          .from('service_reports')
-          .insert([{
-            // Job Identification
-            job_number: formData.jobNumber,
-            job_type: formData.jobType,
-            invoice_number: formData.invoiceNumber,
-            report_date: formData.reportDate,
-            
-            // Customer Information
-            customer_name: formData.customerName,
-            customer_address: formData.customerAddress,
-            contact_person: formData.contactPerson,
-            contact_number: formData.contactNumber,
-            
-            // UPS & Battery Details
-            ups_brand: formData.upsBrand || null,
-            ups_model: formData.upsModel || null,
-            ups_serial_number: formData.upsSerial || null,
-            ups_kva_rating: formData.upsKVA ? parseFloat(formData.upsKVA) : null,
-            ups_kw_rating: formData.upsKW ? parseFloat(formData.upsKW) : null,
-            battery_make_ah: formData.batteryMakeAH || null,
-            battery_type_quantity: formData.batteryTypeQty || null,
-            battery_date_set: formData.batteryDateSet || null,
-            reference_preparation_number: formData.referenceNumber || null,
-            
-            // Service Request Details
-            fault_reported: formData.faultReported,
-            
-            // Technical Readings
-            input_voltage_ln: formData.inputVoltageLN ? parseFloat(formData.inputVoltageLN) : null,
-            input_voltage_le: formData.inputVoltageLE ? parseFloat(formData.inputVoltageLE) : null,
-            input_voltage_ne: formData.inputVoltageNE ? parseFloat(formData.inputVoltageNE) : null,
-            output_voltage_ln: formData.outputVoltageLN ? parseFloat(formData.outputVoltageLN) : null,
-            output_voltage_le: formData.outputVoltageLE ? parseFloat(formData.outputVoltageLE) : null,
-            output_voltage_ne: formData.outputVoltageNE ? parseFloat(formData.outputVoltageNE) : null,
-            load_percentage: formData.loadPercentage ? parseFloat(formData.loadPercentage) : null,
-            load_amperage: formData.loadAmperage ? parseFloat(formData.loadAmperage) : null,
-            charging_current: formData.chargingCurrent ? parseFloat(formData.chargingCurrent) : null,
-            
-            // Technical Checks & Remarks
-            check_vip: formData.checkVIP,
-            check_smd: formData.checkSMD,
-            check_ut: formData.checkUT,
-            testing_conditions: formData.testingConditions || null,
-            additional_test_equipment_model: formData.testEquipmentModel || null,
-            additional_test_equipment_serial: formData.testEquipmentSerial || null,
-            technician_remarks: formData.techRemarks || null,
-            
-            // Logistics and Completion
-            technician_name: formData.technicianName || null,
-            driver_name: formData.driverName || null,
-            vehicle_number: formData.vehicleNumber || null,
-            time_in: formData.timeIn || null,
-            time_out: formData.timeOut || null,
-            
-            // Customer Confirmation
-            customer_remarks: formData.customerRemarks || null,
-            customer_signature: formData.customerSignature,
-            technician_signature: formData.technicianSignature,
-            
-            // Metadata
-            created_at: new Date().toISOString()
-          }])
-          .select();
-
-        if (error) throw error;
-        return data[0];
-      } catch (error) {
-        console.error('Error saving to Supabase:', error);
-        throw error;
-      }
-    }
-
     // Form submission
-    document.getElementById('serviceForm').addEventListener('submit', async function(e) {
+    document.getElementById('serviceForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      
-      if (!supabase) {
-        showStatus('Database not initialized. Please refresh the page.', 'danger');
-        return;
-      }
-
-      // Show loading state
-      const submitBtn = document.getElementById('generateBtn');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
-      submitBtn.disabled = true;
       
       // Collect all form data
       const formData = {
@@ -1072,29 +787,13 @@
       for (let field of requiredFields) {
         if (!formData[field]) {
           showStatus(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}.`, 'danger');
-          submitBtn.innerHTML = originalText;
-          submitBtn.disabled = false;
           return;
         }
       }
 
-      try {
-        // Save to Supabase
-        const savedReport = await saveToSupabase(formData);
-        
-        currentReportData = formData;
-        generatePreview();
-        showStatus(`Service report saved successfully! Report ID: ${savedReport.id}`, 'success');
-        
-        // Reload customer data to include new customer if added
-        loadCustomerData();
-      } catch (error) {
-        showStatus('Error saving report: ' + error.message, 'danger');
-        console.error('Save error:', error);
-      } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-      }
+      currentReportData = formData;
+      generatePreview();
+      showStatus('Service report generated successfully!', 'success');
     });
 
     function generatePreview() {
@@ -1242,18 +941,12 @@ Debug Computer Peripherals
     }
 
     // Initialize when page loads
-    window.addEventListener('load', async function() {
-      initializeSupabase();
+    window.addEventListener('load', function() {
       initializeSignaturePads();
-      setupCustomerAutocomplete();
       
       // Set current date as default
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('reportDate').value = today;
-      
-      // Generate and set job number
-      const jobNumber = await generateJobNumber();
-      document.getElementById('jobNumber').value = jobNumber;
     });
 
     // Handle window resize
@@ -1261,5 +954,4 @@ Debug Computer Peripherals
   </script>
 </body>
 </html>
-
 
