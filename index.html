@@ -16,9 +16,28 @@
     * { font-family: 'Poppins', sans-serif; }
     body { background: linear-gradient(135deg, #4CAF50, #81C784); min-height: 100vh; padding: 20px 0; }
     .main-container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden; max-width: 1200px; margin: 0 auto; }
-    .header-section { background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 2rem 0; text-align: center; }
+    .header-section { background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 2rem 0; text-align: center; position: relative; }
     .header-section h1 { font-weight: 700; margin-bottom: 0.5rem; font-size: 2.5rem; }
     .header-section p { opacity: 0.9; font-size: 1.1rem; margin-bottom: 0; }
+    
+    /* NEW: Connection Status Badge */
+    .connection-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0,0,0,0.2);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; }
+    .status-online { background-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
+    .status-offline { background-color: #ff4444; box-shadow: 0 0 10px #ff4444; }
+
     .form-section { padding: 2rem; }
     .section-header { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 1rem; margin: 2rem 0 1rem 0; text-align: center; }
     .section-header h4 { color: #2E7D32; font-weight: 700; margin: 0; }
@@ -40,6 +59,7 @@
     
     @media (max-width: 768px) {
       .header-section h1 { font-size: 2rem; }
+      .connection-badge { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.8rem; }
       .form-section { padding: 1rem; }
       .component-checks { flex-direction: column; align-items: flex-start; gap: 1rem; }
     }
@@ -51,6 +71,10 @@
       <div class="col-12">
         <div class="main-container">
           <div class="header-section">
+            <div id="connectionStatus" class="connection-badge">
+                <span class="status-dot status-offline" id="statusDot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
             <h1><i class="bi bi-tools"></i> Debug Computer Peripherals</h1>
             <p>Professional Service Report Generator</p>
           </div>
@@ -430,25 +454,39 @@
     let supabase = null;
 
     // --- SUPABASE CONFIGURATION ---
-    // 1. I have filled this in for you from your previous message:
+    // 1. Project URL (Auto-filled)
     const SUPABASE_URL = 'https://ezdptfskycprzmbrxspx.supabase.co';
     
     // 2. PASTE YOUR KEY HERE (Starts with eyJ...)
+    // -------------------------------------------------------------
     const SUPABASE_ANON_KEY = 'PASTE_YOUR_EYJ_KEY_HERE';
-    // -----------------------------
+    // -------------------------------------------------------------
 
     // Initialize Supabase connection on page load
-    function initializeSupabase() {
+    async function initializeSupabase() {
+      const statusText = document.getElementById('statusText');
+      const statusDot = document.getElementById('statusDot');
+
       try {
-        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'PASTE_YOUR_EYJ_KEY_HERE') {
-            console.warn('Supabase Key not set yet.');
-            return;
+        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('PASTE_YOUR_EYJ_KEY_HERE')) {
+            throw new Error('Key not set');
         }
+
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // CHECK CONNECTION: Try to verify connection by checking table existence or simple query
+        const { count, error } = await supabase.from('service_reports').select('*', { count: 'exact', head: true });
+        
+        if (error) throw error;
+
         console.log('Supabase initialized successfully');
+        statusText.textContent = 'System Online';
+        statusDot.className = 'status-dot status-online';
       } catch (error) {
         console.error('Failed to initialize Supabase:', error);
-        showStatus('Database connection failed. Please check configuration.', 'danger');
+        statusText.textContent = 'Database Offline (Check Key)';
+        statusDot.className = 'status-dot status-offline';
+        showStatus('Database connection failed. Please check your API Key in the code.', 'danger');
       }
     }
 
@@ -493,7 +531,7 @@
       statusElement.textContent = message;
       statusElement.className = `alert alert-${type} alert-custom`;
       statusElement.style.display = 'block';
-      setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
+      setTimeout(() => { statusElement.style.display = 'none'; }, 8000);
     }
 
     document.getElementById('technicianName').addEventListener('change', function() {
@@ -641,7 +679,8 @@
              const savedReport = await saveToSupabase(formData);
              showStatus(`Saved successfully! Report ID: ${savedReport.id}`, 'success');
         } else {
-             showStatus('Preview generated (Not saved to database - Key missing)', 'warning');
+             // FALLBACK MODE
+             showStatus('Cannot save: Database Offline. (Preview Only)', 'warning');
         }
         
         currentReportData = formData;
