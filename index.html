@@ -374,12 +374,12 @@
     let currentReportData = null;
 
     // TODO: PUT YOUR KEYS HERE
-    const supabaseUrl = 'YOUR_SUPABASE_URL_HERE'; 
-    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+    const supabaseUrl = 'https://ezdptfskycprzmbrxspx.supabase.co'; 
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU';
 
     // Try to connect, but don't crash if keys are missing
     try {
-      if (supabaseUrl !== 'YOUR_SUPABASE_URL_HERE' && typeof supabase !== 'undefined') {
+      if (supabaseUrl !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU' && typeof supabase !== 'undefined') {
         supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
       } else {
         console.warn("Supabase keys not set. Database features disabled.");
@@ -398,7 +398,7 @@
       // If client wasn't created, show disconnected and exit
       if (!supabaseClient) {
         icon.className = "bi bi-circle-fill text-danger";
-        text.textContent = "Database: Disconnected (Check Keys)";
+        text.textContent = "Database:  ";
         return;
       }
 
@@ -733,3 +733,4 @@
   </script>
 </body>
 </html>
+
