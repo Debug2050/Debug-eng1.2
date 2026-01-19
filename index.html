@@ -342,7 +342,7 @@
               </div>
 
               <div class="text-center mt-4">
-                <button type="submit" class="btn btn-primary btn-lg" id="generateBtn"><i class="bi bi-file-earmark-text"></i> Generate Service Report</button>
+                <button type="submit" class="btn btn-primary btn-lg" id="generateBtn"><i class="bi bi-file-earmark-text"></i> Generate & Save Service Report</button>
               </div>
             </form>
             
@@ -374,15 +374,15 @@
     let currentReportData = null;
 
     // TODO: PUT YOUR KEYS HERE
-    const supabaseUrl = 'https://ezdptfskycprzmbrxspx.supabase.co'; 
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU';
+    const supabaseUrl = 'YOUR_SUPABASE_URL_HERE'; 
+    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
 
-    // Try to connect, but don't crash if keys are missing
+    // Try to connect
     try {
-      if (supabaseUrl !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU' && typeof supabase !== 'undefined') {
+      if (supabaseUrl !== 'YOUR_SUPABASE_URL_HERE' && typeof supabase !== 'undefined') {
         supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
       } else {
-        console.warn("Supabase keys not set. Database features disabled.");
+        console.warn("Supabase keys not set.");
       }
     } catch (e) {
       console.error("Supabase init failed:", e);
@@ -395,16 +395,15 @@
       const icon = document.getElementById("dbIcon");
       const text = document.getElementById("dbText");
 
-      // If client wasn't created, show disconnected and exit
       if (!supabaseClient) {
         icon.className = "bi bi-circle-fill text-danger";
-        text.textContent = "Database:  ";
+        text.textContent = "Database: Disconnected (Keys Missing)";
         return;
       }
 
       try {
         const { error } = await supabaseClient
-          .from("service_reports") // Make sure this table exists!
+          .from("service_reports")
           .select("id")
           .limit(1);
 
@@ -422,25 +421,16 @@
     }
 
     // ==========================================
-    // 3. UI & LOGIC (Signatures, PDF, Form)
+    // 3. UI & LOGIC
     // ==========================================
     
-    // Initialize signature pads
     function initializeSignaturePads() {
       const customerCanvas = document.getElementById('customerSignature');
       const technicianCanvas = document.getElementById('technicianSignature');
       
       if(customerCanvas && technicianCanvas) {
-         customerSignaturePad = new SignaturePad(customerCanvas, {
-            backgroundColor: 'rgba(255, 255, 255, 0)',
-            penColor: 'rgb(0, 0, 0)'
-         });
-         
-         technicianSignaturePad = new SignaturePad(technicianCanvas, {
-            backgroundColor: 'rgba(255, 255, 255, 0)',
-            penColor: 'rgb(0, 0, 0)'
-         });
-         
+         customerSignaturePad = new SignaturePad(customerCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
+         technicianSignaturePad = new SignaturePad(technicianCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
          resizeSignaturePads();
       }
     }
@@ -456,11 +446,8 @@
     }
 
     function clearSignature(type) {
-      if (type === 'customer') {
-        customerSignaturePad.clear();
-      } else {
-        technicianSignaturePad.clear();
-      }
+      if (type === 'customer') customerSignaturePad.clear();
+      else technicianSignaturePad.clear();
     }
 
     function showStatus(message, type = 'success') {
@@ -471,7 +458,6 @@
       setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
     }
 
-    // Toggle "Other" technician input
     const techSelect = document.getElementById('technicianName');
     if(techSelect) {
         techSelect.addEventListener('change', function() {
@@ -487,12 +473,84 @@
         });
     }
 
-    // Form Submission
+    // ==========================================
+    // 4. SAVE TO DATABASE FUNCTION (NEW)
+    // ==========================================
+    async function saveToDatabase(data) {
+        if (!supabaseClient) {
+            console.warn("Skipping DB save: No client");
+            return { error: "Database not configured" };
+        }
+
+        // Map JS camelCase variables to Supabase snake_case columns
+        // NOTE: Ensure these column names exist in your Supabase table!
+        const dbPayload = {
+            job_number: data.jobNumber,
+            job_type: data.jobType,
+            invoice_number: data.invoiceNumber,
+            customer_name: data.customerName,
+            contact_person: data.contactPerson,
+            customer_address: data.customerAddress,
+            contact_number: data.contactNumber,
+            report_date: data.reportDate,
+            ups_brand: data.upsBrand,
+            ups_model: data.upsModel,
+            ups_serial: data.upsSerial,
+            ups_kva: data.upsKVA || null,
+            ups_kw: data.upsKW || null,
+            battery_make_ah: data.batteryMakeAH,
+            battery_type_qty: data.batteryTypeQty,
+            battery_date_set: data.batteryDateSet || null,
+            reference_number: data.referenceNumber,
+            fault_reported: data.faultReported,
+            input_voltage_ln: data.inputVoltageLN || null,
+            input_voltage_le: data.inputVoltageLE || null,
+            input_voltage_ne: data.inputVoltageNE || null,
+            output_voltage_ln: data.outputVoltageLN || null,
+            output_voltage_le: data.outputVoltageLE || null,
+            output_voltage_ne: data.outputVoltageNE || null,
+            load_percentage: data.loadPercentage || null,
+            load_amperage: data.loadAmperage || null,
+            charging_current: data.chargingCurrent || null,
+            check_vip: data.checkVIP,
+            check_smd: data.checkSMD,
+            check_ut: data.checkUT,
+            testing_conditions: data.testingConditions,
+            test_equip_model: data.testEquipmentModel,
+            test_equip_serial: data.testEquipmentSerial,
+            tech_remarks: data.techRemarks,
+            technician_name: data.technicianName,
+            driver_name: data.driverName,
+            vehicle_number: data.vehicleNumber,
+            time_in: data.timeIn || null,
+            time_out: data.timeOut || null,
+            customer_remarks: data.customerRemarks,
+            // Signatures stored as text (Base64 strings)
+            customer_signature: data.customerSignature,
+            technician_signature: data.technicianSignature
+        };
+
+        const { data: savedData, error } = await supabaseClient
+            .from('service_reports')
+            .insert([dbPayload])
+            .select();
+
+        return { data: savedData, error };
+    }
+
+    // ==========================================
+    // 5. FORM SUBMISSION
+    // ==========================================
     const form = document.getElementById('serviceForm');
     if(form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
           e.preventDefault();
           
+          const btn = document.getElementById('generateBtn');
+          const originalBtnText = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
           // Collect Data
           const formData = {
             jobNumber: document.getElementById('jobNumber').value,
@@ -537,15 +595,29 @@
             timeIn: document.getElementById('timeIn').value,
             timeOut: document.getElementById('timeOut').value,
             customerRemarks: document.getElementById('customerRemarks').value,
-            
-            // Capture Signatures safely
             customerSignature: (customerSignaturePad && !customerSignaturePad.isEmpty()) ? customerSignaturePad.toDataURL() : null,
             technicianSignature: (technicianSignaturePad && !technicianSignaturePad.isEmpty()) ? technicianSignaturePad.toDataURL() : null
           };
 
           currentReportData = formData;
+
+          // Attempt to save to DB
+          try {
+             const result = await saveToDatabase(formData);
+             if(result.error) {
+                 console.error("DB Error:", result.error);
+                 showStatus('Generated PDF, but failed to save to database: ' + result.error.message, 'warning');
+             } else {
+                 showStatus('Report saved to database successfully!', 'success');
+             }
+          } catch(err) {
+             console.error("Save failed:", err);
+             showStatus('Error saving to database.', 'danger');
+          }
+
           generatePreview();
-          showStatus('Service report generated successfully!', 'success');
+          btn.disabled = false;
+          btn.innerHTML = originalBtnText;
         });
     }
 
@@ -604,21 +676,12 @@
            </div>
         </div>
       `;
-      
       document.getElementById('reportPreview').style.display = 'block';
     }
 
     async function downloadPDF() {
-      if (!currentReportData) {
-        showStatus('No report data available.', 'danger');
-        return;
-      }
-      
-      // Ensure jsPDF is loaded
-      if (!window.jspdf) {
-         alert("PDF Library not loaded. Check internet connection.");
-         return;
-      }
+      if (!currentReportData) return;
+      if (!window.jspdf) { alert("PDF Library not loaded."); return; }
 
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -632,9 +695,8 @@
       doc.text('Service Report', 20, 30);
 
       doc.setFontSize(10);
-      doc.setTextColor(0); // Black text
+      doc.setTextColor(0);
       let yPos = 50;
-      
       doc.text(`Job Number: ${data.jobNumber}`, 20, yPos);
       doc.text(`Job Type: ${data.jobType}`, 20, yPos + 7);
       doc.text(`Invoice Number: ${data.invoiceNumber}`, 20, yPos + 14);
@@ -671,8 +733,6 @@
       doc.setFontSize(10);
       doc.setTextColor(0);
       yPos += 7;
-      
-      // Readings Table (Simple Text Layout)
       doc.text("Input (L/N): " + (data.inputVoltageLN || '-') + " V", 20, yPos);
       doc.text("Output (L/N): " + (data.outputVoltageLN || '-') + " V", 80, yPos);
       doc.text("Load: " + (data.loadPercentage || '-') + " %", 140, yPos);
@@ -689,43 +749,32 @@
       doc.setTextColor(0);
       yPos += 7;
       doc.text(data.faultReported, 20, yPos, { maxWidth: 170 });
-      
-      // Calculate height of fault text roughly
       yPos += 20;
 
-      // Add Signatures
       if(data.customerSignature) {
           doc.text("Customer Signature:", 20, yPos);
           doc.addImage(data.customerSignature, 'PNG', 20, yPos + 5, 40, 20);
       }
-      
       if(data.technicianSignature) {
           doc.text("Technician Signature:", 100, yPos);
           doc.addImage(data.technicianSignature, 'PNG', 100, yPos + 5, 40, 20);
       }
-      
       doc.save(`Service_Report_${data.jobNumber}.pdf`);
     }
 
     function shareReport() {
-      if (!currentReportData) {
-        showStatus('No report data available.', 'danger');
-        return;
-      }
+      if (!currentReportData) return;
       const data = currentReportData;
       const subject = `Service Report ${data.jobNumber}`;
       const body = `Job: ${data.jobNumber}\nCustomer: ${data.customerName}\nFault: ${data.faultReported}`;
       window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 
-    // Initialize when page loads
     window.addEventListener('load', function() {
       initializeSignaturePads();
       const today = new Date().toISOString().split('T')[0];
       const dateInput = document.getElementById('reportDate');
       if(dateInput) dateInput.value = today;
-      
-      // Check connection safely
       checkDatabaseConnection();
     });
 
@@ -733,4 +782,3 @@
   </script>
 </body>
 </html>
-
