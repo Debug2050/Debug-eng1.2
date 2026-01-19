@@ -286,10 +286,10 @@
                   <label class="form-label"><i class="bi bi-person-gear"></i> Technician Name</label>
                   <select class="form-select" id="technicianName">
                     <option value="">-- Select Technician --</option>
-                    <option value="John Smith">John Smith</option>
-                    <option value="Mike Johnson">Mike Johnson</option>
-                    <option value="David Wilson">David Wilson</option>
-                    <option value="Sarah Davis">Sarah Davis</option>
+                    <option value="Vinoth">Vinoth</option>
+                    <option value="Dimuth">Dimuth</option>
+                    <option value="shehan">shehan</option>
+                    <option value="lakshan">lakshan</option>
                     <option value="Other">Other (Type below)</option>
                   </select>
                   <input type="text" class="form-control mt-2" id="technicianNameOther" placeholder="Enter technician name" style="display: none;">
@@ -374,12 +374,12 @@
     let currentReportData = null;
 
     // TODO: PUT YOUR KEYS HERE
-    const supabaseUrl = 'YOUR_SUPABASE_URL_HERE'; 
-    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+    const supabaseUrl = 'https://ezdptfskycprzmbrxspx.supabase.co'; 
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU';
 
     // Try to connect
     try {
-      if (supabaseUrl !== 'YOUR_SUPABASE_URL_HERE' && typeof supabase !== 'undefined') {
+      if (supabaseUrl !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU' && typeof supabase !== 'undefined') {
         supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
       } else {
         console.warn("Supabase keys not set.");
@@ -874,3 +874,4 @@
   </script>
 </body>
 </html>
+
