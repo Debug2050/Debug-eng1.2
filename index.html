@@ -15,12 +15,14 @@
   <style>
     * { font-family: 'Poppins', sans-serif; }
     body { background: linear-gradient(135deg, #4CAF50, #81C784); min-height: 100vh; padding: 20px 0; }
+    
     .main-container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden; max-width: 1200px; margin: 0 auto; }
+    
     .header-section { background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 2rem 0; text-align: center; position: relative; }
     .header-section h1 { font-weight: 700; margin-bottom: 0.5rem; font-size: 2.5rem; }
     .header-section p { opacity: 0.9; font-size: 1.1rem; margin-bottom: 0; }
     
-    /* NEW: Connection Status Badge */
+    /* Connection Badge */
     .connection-badge {
         position: absolute;
         top: 20px;
@@ -33,6 +35,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        backdrop-filter: blur(5px);
     }
     .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; }
     .status-online { background-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
@@ -41,18 +44,19 @@
     .form-section { padding: 2rem; }
     .section-header { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 1rem; margin: 2rem 0 1rem 0; text-align: center; }
     .section-header h4 { color: #2E7D32; font-weight: 700; margin: 0; }
+    
     .form-label { font-weight: 600; color: #2E7D32; margin-bottom: 0.5rem; }
     .form-control, .form-select { border-radius: 10px; border: 2px solid #e9ecef; padding: 0.75rem; transition: all 0.3s ease; }
     .form-control:focus, .form-select:focus { border-color: #4CAF50; box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25); }
+    
     .btn-primary { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease; }
     .btn-primary:hover { background: linear-gradient(135deg, #388E3C, #4CAF50); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
-    .btn-info { background: linear-gradient(135deg, #2196F3, #42A5F5); border: none; border-radius: 10px; font-weight: 600; }
-    .btn-warning { background: linear-gradient(135deg, #FF9800, #FFB74D); border: none; border-radius: 10px; font-weight: 600; }
-    .btn-success { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; font-weight: 600; }
+    
     .signature-pad { border: 2px solid #e9ecef; border-radius: 10px; width: 100%; height: 150px; }
     .component-checks { display: flex; gap: 2rem; flex-wrap: wrap; align-items: center; }
     .form-check { margin-bottom: 0; }
     .form-check-input:checked { background-color: #4CAF50; border-color: #4CAF50; }
+    
     .report-preview { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 2rem; margin-top: 2rem; }
     .report-preview h3 { color: #2E7D32; font-weight: 700; margin-bottom: 1.5rem; }
     .alert-custom { border: none; border-radius: 10px; font-weight: 500; }
@@ -61,7 +65,6 @@
       .header-section h1 { font-size: 2rem; }
       .connection-badge { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.8rem; }
       .form-section { padding: 1rem; }
-      .component-checks { flex-direction: column; align-items: flex-start; gap: 1rem; }
     }
   </style>
 </head>
@@ -454,27 +457,24 @@
     let supabase = null;
 
     // --- SUPABASE CONFIGURATION ---
-    // 1. Project URL (Auto-filled)
     const SUPABASE_URL = 'https://ezdptfskycprzmbrxspx.supabase.co';
     
-    // 2. PASTE YOUR KEY HERE (Starts with eyJ...)
     // -------------------------------------------------------------
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU';
+    // >>>>> PASTE YOUR KEY BELOW <<<<<
+    const SUPABASE_ANON_KEY = 'PASTE_YOUR_KEY_HERE';
     // -------------------------------------------------------------
 
-    // Initialize Supabase connection on page load
+    // Initialize Supabase connection
     async function initializeSupabase() {
       const statusText = document.getElementById('statusText');
       const statusDot = document.getElementById('statusDot');
 
       try {
-        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU')) {
+        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('PASTE_YOUR_KEY_HERE')) {
             throw new Error('Key not set');
         }
 
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // CHECK CONNECTION: Try to verify connection by checking table existence or simple query
         const { count, error } = await supabase.from('service_reports').select('*', { count: 'exact', head: true });
         
         if (error) throw error;
@@ -483,10 +483,10 @@
         statusText.textContent = 'System Online';
         statusDot.className = 'status-dot status-online';
       } catch (error) {
-        console.error('Failed to initialize Supabase:', error);
-        statusText.textContent = 'Database Offline (Check Key)';
+        console.error('Connection Check Failed:', error);
+        statusText.textContent = 'Database Offline (Mode: Preview Only)';
         statusDot.className = 'status-dot status-offline';
-        showStatus('Database connection failed. Please check your API Key in the code.', 'danger');
+        // We do NOT show a big alert here, we just set the badge.
       }
     }
 
@@ -495,16 +495,8 @@
       const customerCanvas = document.getElementById('customerSignature');
       const technicianCanvas = document.getElementById('technicianSignature');
       
-      customerSignaturePad = new SignaturePad(customerCanvas, {
-        backgroundColor: 'rgba(255, 255, 255, 0)',
-        penColor: 'rgb(0, 0, 0)'
-      });
-      
-      technicianSignaturePad = new SignaturePad(technicianCanvas, {
-        backgroundColor: 'rgba(255, 255, 255, 0)',
-        penColor: 'rgb(0, 0, 0)'
-      });
-      
+      customerSignaturePad = new SignaturePad(customerCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
+      technicianSignaturePad = new SignaturePad(technicianCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
       resizeSignaturePads();
     }
 
@@ -519,11 +511,8 @@
     }
 
     function clearSignature(type) {
-      if (type === 'customer') {
-        customerSignaturePad.clear();
-      } else {
-        technicianSignaturePad.clear();
-      }
+      if (type === 'customer') customerSignaturePad.clear();
+      else technicianSignaturePad.clear();
     }
 
     function showStatus(message, type = 'success') {
@@ -536,25 +525,14 @@
 
     document.getElementById('technicianName').addEventListener('change', function() {
       const otherInput = document.getElementById('technicianNameOther');
-      if (this.value === 'Other') {
-        otherInput.style.display = 'block';
-        otherInput.required = true;
-      } else {
-        otherInput.style.display = 'none';
-        otherInput.required = false;
-        otherInput.value = '';
-      }
+      if (this.value === 'Other') { otherInput.style.display = 'block'; otherInput.required = true; } 
+      else { otherInput.style.display = 'none'; otherInput.required = false; otherInput.value = ''; }
     });
 
     // Save data to Supabase
     async function saveToSupabase(formData) {
-      if (!supabase) {
-        throw new Error('Database not initialized. Please check API Key.');
-      }
-
-      const { data, error } = await supabase
-        .from('service_reports')
-        .insert([{
+      if (!supabase) throw new Error('Offline');
+      const { data, error } = await supabase.from('service_reports').insert([{
             job_number: formData.jobNumber,
             job_type: formData.jobType,
             invoice_number: formData.invoiceNumber,
@@ -598,8 +576,7 @@
             customer_signature: formData.customerSignature,
             technician_signature: formData.technicianSignature,
             created_at: new Date().toISOString()
-        }])
-        .select();
+      }]).select();
 
       if (error) throw error;
       return data[0];
@@ -611,10 +588,9 @@
       
       const submitBtn = document.getElementById('generateBtn');
       const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
       submitBtn.disabled = true;
       
-      // Collect data
       const formData = {
         jobNumber: document.getElementById('jobNumber').value,
         jobType: document.getElementById('jobType').value,
@@ -662,7 +638,6 @@
         technicianSignature: technicianSignaturePad.isEmpty() ? null : technicianSignaturePad.toDataURL()
       };
 
-      // Validate required
       const requiredFields = ['jobNumber', 'jobType', 'invoiceNumber', 'customerName', 'contactPerson', 'customerAddress', 'contactNumber', 'reportDate', 'faultReported'];
       for (let field of requiredFields) {
         if (!formData[field]) {
@@ -673,26 +648,26 @@
         }
       }
 
+      // SAFE MODE LOGIC
+      // If Database works, save it. If not, skip save and show preview anyway.
       try {
-        // Attempt save
         if(supabase) {
              const savedReport = await saveToSupabase(formData);
-             showStatus(`Saved successfully! Report ID: ${savedReport.id}`, 'success');
+             showStatus(`Saved to Database! ID: ${savedReport.id}`, 'success');
         } else {
-             // FALLBACK MODE
-             showStatus('Cannot save: Database Offline. (Preview Only)', 'warning');
+             throw new Error('Supabase not initialized');
         }
-        
-        currentReportData = formData;
-        generatePreview();
-        
       } catch (error) {
-        showStatus('Error saving report: ' + error.message, 'danger');
-        console.error('Save error:', error);
-      } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+        // Even if save fails, we still allow PDF generation
+        console.warn('Database save failed, continuing to preview:', error);
+        showStatus('Offline Mode: Report generated locally (Not saved to DB)', 'warning');
       }
+
+      currentReportData = formData;
+      generatePreview();
+      
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
     });
 
     function generatePreview() {
@@ -741,7 +716,7 @@
     }
 
     async function downloadPDF() {
-      if (!currentReportData) { showStatus('No report data available to download.', 'danger'); return; }
+      if (!currentReportData) { showStatus('No report data available.', 'danger'); return; }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const data = currentReportData;
@@ -779,7 +754,7 @@
     }
 
     function shareReport() {
-      if (!currentReportData) { showStatus('No report data available to share.', 'danger'); return; }
+      if (!currentReportData) { showStatus('No report data available.', 'danger'); return; }
       const data = currentReportData;
       const subject = `Service Report ${data.jobNumber} - Debug Computer Peripherals`;
       const body = `Service Report Details:\n\nJob Number: ${data.jobNumber}\nCustomer: ${data.customerName}\nFault: ${data.faultReported}`;
@@ -797,4 +772,3 @@
   </script>
 </body>
 </html>
-
