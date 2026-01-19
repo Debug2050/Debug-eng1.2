@@ -459,7 +459,7 @@
     
     // 2. PASTE YOUR KEY HERE (Starts with eyJ...)
     // -------------------------------------------------------------
-    const SUPABASE_ANON_KEY = 'PASTE_YOUR_EYJ_KEY_HERE';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU';
     // -------------------------------------------------------------
 
     // Initialize Supabase connection on page load
@@ -468,7 +468,7 @@
       const statusDot = document.getElementById('statusDot');
 
       try {
-        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('PASTE_YOUR_EYJ_KEY_HERE')) {
+        if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU')) {
             throw new Error('Key not set');
         }
 
@@ -797,3 +797,4 @@
   </script>
 </body>
 </html>
+
