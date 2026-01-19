@@ -956,8 +956,49 @@ Debug Computer Peripherals
 
     // Handle window resize
     window.addEventListener('resize', resizeSignaturePads);
+
+<script>
+  const SUPABASE_URL = "https://ezdptfskycprzmbrxspx.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU";
+
+  const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+</script>
+
+
+
+<script>
+async function checkDatabaseConnection() {
+  try {
+    const { error } = await supabaseClient
+      .from("service_reports")
+      .select("id")
+      .limit(1);
+
+    const icon = document.getElementById("dbIcon");
+    const text = document.getElementById("dbText");
+
+    if (error) {
+      icon.className = "bi bi-circle-fill text-danger";
+      text.textContent = "Database: Disconnected";
+    } else {
+      icon.className = "bi bi-circle-fill text-success";
+      text.textContent = "Database: Connected";
+    }
+  } catch (err) {
+    document.getElementById("dbIcon").className =
+      "bi bi-circle-fill text-danger";
+    document.getElementById("dbText").textContent =
+      "Database: Disconnected";
+  }
+}
+  </script>
+
   </script>
 </body>
 </html>
+
 
 
