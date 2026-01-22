@@ -571,12 +571,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Onsite Location</label>
-                <input type="text" class="form-control onsite-location">
+                <input type="text" class="form-control">
             </div>
             <div class="row-2col">
                 <div class="form-group">
                     <label class="form-label">Date</label>
-                    <input type="date" class="form-control entry-date">
+                    <input type="date" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">OT Hours (Auto)</label>
@@ -596,12 +596,12 @@
             <div class="form-group">
                 <label class="form-label">Meals (Rs)</label>
                 <div class="row-2col">
-                    <input type="number" class="form-control meal-input breakfast" placeholder="Breakfast" oninput="calculate()" min="0">
-                    <input type="number" class="form-control meal-input lunch" placeholder="Lunch" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input" placeholder="Breakfast" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input" placeholder="Lunch" oninput="calculate()" min="0">
                 </div>
                 <div class="row-2col" style="margin-top:8px;">
-                    <input type="number" class="form-control meal-input tea" placeholder="Tea" oninput="calculate()" min="0">
-                    <input type="number" class="form-control meal-input dinner" placeholder="Dinner" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input" placeholder="Tea" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input" placeholder="Dinner" oninput="calculate()" min="0">
                 </div>
             </div>
         `;
@@ -644,7 +644,7 @@
             <div class="row-2col">
                 <div class="form-group">
                     <label class="form-label">Date</label>
-                    <input type="date" class="form-control acc-date">
+                    <input type="date" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Amount (Rs)</label>
@@ -668,11 +668,11 @@
             <div class="row-3col">
                 <div class="form-group">
                     <label class="form-label">Date</label>
-                    <input type="date" class="form-control fuel-date">
+                    <input type="date" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">KM</label>
-                    <input type="number" class="form-control fuel-km" min="0">
+                    <input type="number" class="form-control" min="0">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Amount</label>
@@ -877,17 +877,19 @@
         
         const otData = [];
         document.querySelectorAll('#entriesContainer .entry-item').forEach((item, index) => {
+            const inputs = item.querySelectorAll('input');
+            const meals = item.querySelectorAll('.meal-input');
             otData.push([
                 index + 1,
-                item.querySelector('.entry-date').value,
-                item.querySelector('.onsite-location').value,
+                inputs[1].value, // Date
+                inputs[0].value, // Location
                 item.querySelector('.in-time').value,
                 item.querySelector('.out-time').value,
                 item.querySelector('.ot-hours').value,
-                item.querySelector('.breakfast').value || '0',
-                item.querySelector('.lunch').value || '0',
-                item.querySelector('.tea').value || '0',
-                item.querySelector('.dinner').value || '0'
+                meals[0].value || '0', // Breakfast
+                meals[1].value || '0', // Lunch
+                meals[2].value || '0', // Tea
+                meals[3].value || '0'  // Dinner
             ]);
         });
 
@@ -904,22 +906,24 @@
         y = doc.lastAutoTable.finalY + 10;
 
         // --- Accommodation & Fuel Section ---
-        const accData = [];
+        const otherData = [];
         document.querySelectorAll('#accContainer .entry-item').forEach(item => {
-            accData.push([item.querySelector('.acc-date').value, 'Accommodation', item.querySelector('.acc-input').value]);
+            const inputs = item.querySelectorAll('input');
+            otherData.push([inputs[0].value, 'Accommodation', inputs[1].value]);
         });
         document.querySelectorAll('#fuelContainer .entry-item').forEach(item => {
-            accData.push([item.querySelector('.fuel-date').value, `Fuel (${item.querySelector('.fuel-km').value} KM)`, item.querySelector('.fuel-input').value]);
+            const inputs = item.querySelectorAll('input');
+            otherData.push([inputs[0].value, `Fuel (${inputs[1].value} KM)`, inputs[2].value]);
         });
 
-        if (accData.length > 0) {
+        if (otherData.length > 0) {
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
             doc.text("Other Expenses", margin, y);
             doc.autoTable({
                 startY: y + 4,
                 head: [['Date', 'Description', 'Amount (Rs)']],
-                body: accData,
+                body: otherData,
                 theme: 'grid',
                 headStyles: { fillColor: [118, 75, 162], textColor: 255 },
                 styles: { fontSize: 9 }
