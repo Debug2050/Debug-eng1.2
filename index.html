@@ -749,10 +749,17 @@
             return; // STRICT BLOCK: NO DOWNLOAD
         }
 
-        // --- NEW: Gather In/Out Times from the first entry (assuming single record per claim) ---
+        // --- FIXED: Gather In/Out Times from the first entry ---
         const firstEntry = document.querySelector('.entry-item');
-        const inTimeVal = firstEntry ? firstEntry.querySelector('.in-time').value : null;
-        const outTimeVal = firstEntry ? firstEntry.querySelector('.out-time').value : null;
+        let inTimeVal = null;
+        let outTimeVal = null;
+        
+        if (firstEntry) {
+            const inInput = firstEntry.querySelector('.in-time');
+            const outInput = firstEntry.querySelector('.out-time');
+            if (inInput && inInput.value) inTimeVal = inInput.value;
+            if (outInput && outInput.value) outTimeVal = outInput.value;
+        }
 
         // Gather data
         const claimData = {
