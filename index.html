@@ -1,877 +1,861 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Debug Computer Peripherals - Service Report Generator</title>
-  
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <style>
-    * { font-family: 'Poppins', sans-serif; }
-    body { background: linear-gradient(135deg, #4CAF50, #81C784); min-height: 100vh; padding: 20px 0; }
-    .main-container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden; max-width: 1200px; margin: 0 auto; }
-    .header-section { background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 2rem 0; text-align: center; }
-    .header-section h1 { font-weight: 700; margin-bottom: 0.5rem; font-size: 2.5rem; }
-    .header-section p { opacity: 0.9; font-size: 1.1rem; margin-bottom: 0; }
-    .form-section { padding: 2rem; }
-    .section-header { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 1rem; margin: 2rem 0 1rem 0; text-align: center; }
-    .section-header h4 { color: #2E7D32; font-weight: 700; margin: 0; }
-    .form-label { font-weight: 600; color: #2E7D32; margin-bottom: 0.5rem; }
-    .form-control, .form-select { border-radius: 10px; border: 2px solid #e9ecef; padding: 0.75rem; transition: all 0.3s ease; }
-    .form-control:focus, .form-select:focus { border-color: #4CAF50; box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25); }
-    .btn-primary { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease; }
-    .btn-primary:hover { background: linear-gradient(135deg, #388E3C, #4CAF50); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
-    .btn-info { background: linear-gradient(135deg, #2196F3, #42A5F5); border: none; border-radius: 10px; font-weight: 600; }
-    .btn-warning { background: linear-gradient(135deg, #FF9800, #FFB74D); border: none; border-radius: 10px; font-weight: 600; }
-    .btn-success { background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; border-radius: 10px; font-weight: 600; }
-    .signature-pad { border: 2px solid #e9ecef; border-radius: 10px; width: 100%; height: 150px; }
-    .component-checks { display: flex; gap: 2rem; flex-wrap: wrap; align-items: center; }
-    .form-check { margin-bottom: 0; }
-    .form-check-input:checked { background-color: #4CAF50; border-color: #4CAF50; }
-    .report-preview { background: linear-gradient(135deg, #E8F5E8, #F1F8E9); border: 2px solid #C8E6C9; border-radius: 15px; padding: 2rem; margin-top: 2rem; }
-    .report-preview h3 { color: #2E7D32; font-weight: 700; margin-bottom: 1.5rem; }
-    .alert-custom { border: none; border-radius: 10px; font-weight: 500; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Form</title>
     
-    @media (max-width: 768px) {
-      .header-section h1 { font-size: 2rem; }
-      .form-section { padding: 1rem; }
-      .component-checks { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    }
-  </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .app-header {
+            background: white;
+            padding: 16px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .status-online { background: #d4edda; color: #155724; }
+        .status-offline { background: #f8d7da; color: #721c24; }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 16px 100px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i { color: #667eea; }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-control, .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .location-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .location-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .location-btn:active { transform: scale(0.98); }
+
+        .location-status {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            font-size: 13px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .location-success { background: rgba(40, 167, 69, 0.3); }
+        .location-error { background: rgba(220, 53, 69, 0.3); }
+
+        .entry-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .entry-number {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .row-3col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .add-btn {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            color: #667eea;
+            padding: 12px;
+            border-radius: 10px;
+            width: 100%;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 18px;
+            color: #667eea;
+            padding-top: 14px;
+            margin-top: 8px;
+            border-top: 2px solid #667eea;
+        }
+
+        .signature-pad-container {
+            border: 2px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 12px;
+            background: #fafafa;
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .sig-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .signature-canvas {
+            width: 100%;
+            height: 120px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            background: white;
+            touch-action: none;
+        }
+
+        .clear-sig-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: white;
+            border: 1px solid #dee2e6;
+            color: #dc3545;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            z-index: 99;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+        }
+
+        .total-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 12px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row justify-content-center">
-      <div class="col-12">
-        <div class="main-container">
-          <div class="header-section">
-            <h1><i class="bi bi-tools"></i> Debug Computer Peripherals</h1>
-            <p>Professional Service Report Generator</p>
-          </div>
 
-          <div class="form-section">
+<div class="app-header">
+    <h1><i class="bi bi-file-earmark-text"></i> Claim Form</h1>
+    <span id="statusBadge" class="status-badge status-online">System Ready</span>
+</div>
+
+<div class="app-container">
+    <form id="claimForm">
+        <div class="form-card">
+            <div class="card-title"><i class="bi bi-person-circle"></i> Personal Information</div>
             
-            <div class="d-flex justify-content-end">
-                <div id="dbStatus" style="margin-top:10px;font-size:14px; font-weight: 600;">
-                    <i id="dbIcon" class="bi bi-circle-fill text-secondary"></i>
-                    <span id="dbText">Database: Checking...</span>
+            <div class="form-group">
+                <label for="applicantName" class="form-label">Applicant Name</label>
+                <input type="text" id="applicantName" class="form-control" required>
+            </div>
+            <div class="row-2col">
+                <div class="form-group">
+                    <label for="appDate" class="form-label">Application Date</label>
+                    <input type="date" id="appDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="dept" class="form-label">Department</label>
+                    <select id="dept" class="form-select" required>
+                        <option value="">Select Department</option>
+                        <option>Engineering</option>
+                        <option>Operations</option>
+                        <option>Maintenance</option>
+                        <option>IT Support</option>
+                    </select>
                 </div>
             </div>
-
-            <form id="serviceForm">
-              
-              <div class="section-header">
-                <h4><i class="bi bi-clipboard-check"></i> Job Identification</h4>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-hash"></i> Job Number</label>
-                  <input type="text" class="form-control" id="jobNumber" required>
+            <div class="row-2col">
+                <div class="form-group">
+                    <label for="epfNo" class="form-label">EPF No</label>
+                    <input type="text" id="epfNo" class="form-control" required>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-gear"></i> Job Type</label>
-                  <select class="form-select" id="jobType" required>
-                    <option value="">-- Select Job Type --</option>
-                    <option value="Break Down">Break Down</option>
-                    <option value="Service">Service</option>
-                    <option value="Unservice">Unservice</option>
-                    <option value="Inspection">Inspection</option>
-                    <option value="Installation">Installation</option>
-                    <option value="Maintenance">Maintenance</option>
-                  </select>
+                <div class="form-group">
+                    <label for="customerName" class="form-label">Customer Name</label>
+                    <input type="text" id="customerName" class="form-control" required>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-receipt"></i> Invoice Number</label>
-                  <input type="text" class="form-control" id="invoiceNumber" required>
-                </div>
-              </div>
-
-              <div class="section-header">
-                <h4><i class="bi bi-person-circle"></i> Customer Information</h4>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-building"></i> Customer Name</label>
-                  <input type="text" class="form-control" id="customerName" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-person-badge"></i> Contact Person</label>
-                  <input type="text" class="form-control" id="contactPerson" required>
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-geo-alt"></i> Customer Address</label>
-                  <textarea class="form-control" id="customerAddress" rows="3" required></textarea>
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label"><i class="bi bi-telephone"></i> Contact Number</label>
-                  <input type="tel" class="form-control" id="contactNumber" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label"><i class="bi bi-calendar-event"></i> Report Date</label>
-                  <input type="date" class="form-control" id="reportDate" required>
-                </div>
-              </div>
-
-              <div class="section-header">
-                <h4><i class="bi bi-battery-charging"></i> UPS & Battery Details</h4>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-tag"></i> UPS Brand</label>
-                  <select class="form-select" id="upsBrand">
-                    <option value="">-- Select Brand --</option>
-                    <option value="APC">APC</option>
-                    <option value="Eaton">Eaton</option>
-                    <option value="Schneider Electric">Schneider Electric</option>
-                    <option value="Vertiv">Vertiv</option>
-                    <option value="CyberPower">CyberPower</option>
-                    <option value="Tripp Lite">Tripp Lite</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-cpu"></i> UPS Model</label>
-                  <input type="text" class="form-control" id="upsModel">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-upc-scan"></i> UPS Serial Number</label>
-                  <input type="text" class="form-control" id="upsSerial">
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-3 mb-3">
-                  <label class="form-label"><i class="bi bi-lightning"></i> UPS KVA Rating</label>
-                  <input type="number" class="form-control" id="upsKVA" step="0.1" min="0">
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label"><i class="bi bi-power"></i> UPS kW Rating</label>
-                  <input type="number" class="form-control" id="upsKW" step="0.1" min="0">
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label"><i class="bi bi-battery"></i> Battery Make / AH</label>
-                  <input type="text" class="form-control" id="batteryMakeAH" placeholder="e.g., Exide 100AH">
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label"><i class="bi bi-collection"></i> Battery Type / Quantity</label>
-                  <input type="text" class="form-control" id="batteryTypeQty" placeholder="e.g., Lead Acid / 4 units">
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-calendar-date"></i> Battery Date Set</label>
-                  <input type="date" class="form-control" id="batteryDateSet">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-file-text"></i> Reference / Preparation Number</label>
-                  <input type="text" class="form-control" id="referenceNumber">
-                </div>
-              </div>
-
-              <div class="section-header">
-                <h4><i class="bi bi-exclamation-triangle"></i> Service Request Details</h4>
-              </div>
-              <div class="mb-3">
-                <label class="form-label"><i class="bi bi-chat-square-text"></i> Fault Reported / Service Requested</label>
-                <textarea class="form-control" id="faultReported" rows="4" placeholder="Describe the fault or service requested..." required></textarea>
-              </div>
-
-              <div class="section-header">
-                <h4><i class="bi bi-speedometer2"></i> Technical Readings</h4>
-              </div>
-              
-              <div class="row mb-3">
-                <div class="col-12"><h6 class="text-muted mb-3">Input Voltage Readings</h6></div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Input Voltage (L/N)</label>
-                  <div class="input-group"><input type="number" class="form-control" id="inputVoltageLN" step="0.1" min="0"><span class="input-group-text">V</span></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Input Voltage (L/E)</label>
-                  <div class="input-group"><input type="number" class="form-control" id="inputVoltageLE" step="0.1" min="0"><span class="input-group-text">V</span></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Input Voltage (N/E)</label>
-                  <div class="input-group"><input type="number" class="form-control" id="inputVoltageNE" step="0.1" min="0"><span class="input-group-text">V</span></div>
-                </div>
-              </div>
-              
-              <div class="row mb-3">
-                <div class="col-12"><h6 class="text-muted mb-3">Output Voltage Readings</h6></div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Output Voltage (L/N)</label>
-                  <div class="input-group"><input type="number" class="form-control" id="outputVoltageLN" step="0.1" min="0"><span class="input-group-text">V</span></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Output Voltage (L/E)</label>
-                  <div class="input-group"><input type="number" class="form-control" id="outputVoltageLE" step="0.1" min="0"><span class="input-group-text">V</span></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Output Voltage (N/E)</label>
-                  <div class="input-group"><input type="number" class="form-control" id="outputVoltageNE" step="0.1" min="0"><span class="input-group-text">V</span></div>
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Load Percentage (%)</label>
-                  <div class="input-group"><input type="number" class="form-control" id="loadPercentage" min="0" max="100"><span class="input-group-text">%</span></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Load Amperage</label>
-                  <div class="input-group"><input type="number" class="form-control" id="loadAmperage" step="0.1" min="0"><span class="input-group-text">A</span></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Charging Current</label>
-                  <div class="input-group"><input type="number" class="form-control" id="chargingCurrent" step="0.1" min="0"><span class="input-group-text">A</span></div>
-                </div>
-              </div>
-
-              <div class="section-header">
-                <h4><i class="bi bi-check2-square"></i> Technical Checks & Remarks</h4>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label">Component Checks</label>
-                <div class="component-checks">
-                  <div class="form-check"><input class="form-check-input" type="checkbox" id="checkVIP"><label class="form-check-label" for="checkVIP">VIP</label></div>
-                  <div class="form-check"><input class="form-check-input" type="checkbox" id="checkSMD"><label class="form-check-label" for="checkSMD">SMD</label></div>
-                  <div class="form-check"><input class="form-check-input" type="checkbox" id="checkUT"><label class="form-check-label" for="checkUT">UT</label></div>
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Testing Conditions</label>
-                  <select class="form-select" id="testingConditions">
-                    <option value="">-- Select Condition --</option>
-                    <option value="With Battery">With Battery</option>
-                    <option value="Without Battery">Without Battery</option>
-                  </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Additional Test Equipment Model</label>
-                  <input type="text" class="form-control" id="testEquipmentModel" placeholder="Withstand Model">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Additional Test Equipment Serial No</label>
-                  <input type="text" class="form-control" id="testEquipmentSerial" placeholder="Withstand Serial No">
-                </div>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label"><i class="bi bi-journal-text"></i> Technician's Technical Remarks</label>
-                <textarea class="form-control" id="techRemarks" rows="4" placeholder="Technical observations, recommendations, and remarks..."></textarea>
-              </div>
-
-              <div class="section-header">
-                <h4><i class="bi bi-truck"></i> Logistics and Completion</h4>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-person-gear"></i> Technician Name</label>
-                  <select class="form-select" id="technicianName">
-                    <option value="">-- Select Technician --</option>
-                    <option value="Vinoth">Vinoth</option>
-                    <option value="Dimuth">Dimuth</option>
-                    <option value="shehan">shehan</option>
-                    <option value="lakshan">lakshan</option>
-                    <option value="Other">Other (Type below)</option>
-                  </select>
-                  <input type="text" class="form-control mt-2" id="technicianNameOther" placeholder="Enter technician name" style="display: none;">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-person-driving"></i> Driver Name</label>
-                  <input type="text" class="form-control" id="driverName">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label"><i class="bi bi-car-front"></i> Vehicle Number</label>
-                  <input type="text" class="form-control" id="vehicleNumber" placeholder="e.g., ABC-1234">
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-clock"></i> Time In</label>
-                  <input type="time" class="form-control" id="timeIn">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-clock-history"></i> Time Out</label>
-                  <input type="time" class="form-control" id="timeOut">
-                </div>
-              </div>
-
-              <div class="section-header">
-                <h4><i class="bi bi-person-check"></i> Customer Confirmation</h4>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label"><i class="bi bi-chat-quote"></i> Customer Remarks</label>
-                <textarea class="form-control" id="customerRemarks" rows="3" placeholder="Customer feedback and remarks..."></textarea>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-pen"></i> Customer Signature</label>
-                  <canvas class="signature-pad" id="customerSignature"></canvas>
-                  <div class="mt-2">
-                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('customer')"><i class="bi bi-eraser"></i> Clear</button>
-                  </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label"><i class="bi bi-pen-fill"></i> Technician Signature</label>
-                  <canvas class="signature-pad" id="technicianSignature"></canvas>
-                  <div class="mt-2">
-                    <button type="button" class="btn btn-sm btn-warning" onclick="clearSignature('technician')"><i class="bi bi-eraser"></i> Clear</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="text-center mt-4">
-                <button type="submit" class="btn btn-primary btn-lg" id="generateBtn"><i class="bi bi-file-earmark-text"></i> Generate & Save Service Report</button>
-              </div>
-            </form>
-            
-            <div id="statusMessage" class="alert alert-custom mt-3" style="display: none;"></div>
-
-            <div id="reportPreview" class="report-preview" style="display:none">
-              <h3><i class="bi bi-file-earmark-check"></i> Service Report Preview</h3>
-              <div id="previewContent"></div>
-              <div class="mt-3 d-flex gap-2 flex-wrap">
-                <button class="btn btn-success" onclick="downloadPDF()"><i class="bi bi-file-earmark-pdf"></i> Download PDF</button>
-                <button class="btn btn-info" onclick="window.print()"><i class="bi bi-printer"></i> Print Report</button>
-                <button class="btn btn-warning" onclick="shareReport()"><i class="bi bi-share"></i> Share Report</button>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <div class="location-card">
+            <div class="card-title" style="color:white;"><i class="bi bi-geo-alt-fill"></i> Location Check-in</div>
+            <input type="hidden" id="locationData">
+            <button type="button" class="location-btn" onclick="getLocation()">
+                <i class="bi bi-cursor-fill"></i> Capture Current Location
+            </button>
+            <div id="locationStatus" class="location-status">
+                <i class="bi bi-info-circle"></i> Click the button to check-in.
+            </div>
+        </div>
 
-  <script>
-    // ==========================================
-    // 1. SAFE INITIALIZATION
-    // ==========================================
-    let supabaseClient = null;
-    let customerSignaturePad, technicianSignaturePad;
-    let currentReportData = null;
+        <div class="form-card">
+            <div class="card-title"><i class="bi bi-clock-history"></i> Overtime & Meals</div>
+            <div id="entriesContainer">
+                <!-- OT Entries will be added here -->
+            </div>
+            <button type="button" class="add-btn" onclick="addEntry()">
+                <i class="bi bi-plus-circle"></i> Add OT Entry
+            </button>
+        </div>
 
-    // TODO: PUT YOUR KEYS HERE
-    const supabaseUrl = 'https://ezdptfskycprzmbrxspx.supabase.co'; 
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU';
+        <div class="form-card">
+            <div class="card-title"><i class="bi bi-car-front"></i> Fuel & Travel</div>
+            <div id="fuelContainer">
+                <!-- Fuel Entries will be added here -->
+            </div>
+            <button type="button" class="add-btn" onclick="addFuel()">
+                <i class="bi bi-plus-circle"></i> Add Fuel Entry
+            </button>
+        </div>
 
-    // Try to connect
-    try {
-      if (supabaseUrl !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZHB0ZnNreWNwcnptYnJ4c3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MDE2OTYsImV4cCI6MjA4NDM3NzY5Nn0.aj0i6cmHjnCqphrmK7lq1xfUrZ8QCEx8x_XGQUB6qrU' && typeof supabase !== 'undefined') {
-        supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-      } else {
-        console.warn("Supabase keys not set.");
-      }
-    } catch (e) {
-      console.error("Supabase init failed:", e);
+        <div class="form-card">
+            <div class="card-title"><i class="bi bi-house-door"></i> Accommodation</div>
+            <div id="accContainer">
+                <!-- Accommodation Entries will be added here -->
+            </div>
+            <button type="button" class="add-btn" onclick="addAcc()">
+                <i class="bi bi-plus-circle"></i> Add Accommodation Entry
+            </button>
+        </div>
+
+        <div class="form-card">
+            <div class="card-title"><i class="bi bi-calculator"></i> Summary</div>
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>Total OT Hours</span>
+                    <span id="sumOT" class="total-badge">0.0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Meals</span>
+                    <span id="sumMeals">Rs 0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Fuel</span>
+                    <span id="sumFuelSummary">Rs 0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Accommodation</span>
+                    <span id="sumAccSummary">Rs 0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Grand Total Claim</span>
+                    <span id="grandTotal">Rs 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div class="card-title"><i class="bi bi-pen"></i> Signatures</div>
+            
+            <div class="signature-pad-container">
+                <span class="sig-label">Applicant Signature</span>
+                <canvas id="sig1" class="signature-canvas"></canvas>
+                <button type="button" class="clear-sig-btn" onclick="clearSig('sig1')">Clear</button>
+            </div>
+
+            <div class="signature-pad-container">
+                <span class="sig-label">Team Leader Signature</span>
+                <canvas id="sig2" class="signature-canvas"></canvas>
+                <button type="button" class="clear-sig-btn" onclick="clearSig('sig2')">Clear</button>
+            </div>
+
+            <div class="signature-pad-container">
+                <span class="sig-label">Approved By</span>
+                <canvas id="sig3" class="signature-canvas"></canvas>
+                <button type="button" class="clear-sig-btn" onclick="clearSig('sig3')">Clear</button>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="submit-btn">
+            <i class="bi bi-download"></i> Submit & Download PDF
+        </button>
+    </form>
+</div>
+
+<script>
+    let entryCount = 0;
+    const pads = {};
+
+    window.onload = () => {
+        initSignatures();
+        addEntry(); // Start with one entry
+        calculate();
+    };
+
+    async function getLocation() {
+        const status = document.getElementById('locationStatus');
+        const hidden = document.getElementById('locationData');
+        
+        status.className = 'location-status';
+        status.innerHTML = '<i class="bi bi-hourglass-split"></i> Getting location...';
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
+                        { headers: { 'User-Agent': 'ClaimFormApp' } }
+                    );
+                    const data = await response.json();
+                    
+                    if (data && data.display_name) {
+                        const city = data.address.city || data.address.town || data.address.village || 'Location';
+                        hidden.value = data.display_name;
+                        status.className = 'location-status location-success';
+                        status.innerHTML = `<div><i class="bi bi-check-circle"></i> <strong>${city}</strong><br><small style="font-size:11px;">${data.display_name.substring(0, 80)}...</small></div>`;
+                    } else {
+                        throw new Error('Address not found');
+                    }
+                } catch (error) {
+                    hidden.value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    status.className = 'location-status location-success';
+                    status.innerHTML = `<i class="bi bi-check-circle"></i> Location captured<br><small>Coords: ${lat.toFixed(4)}, ${lon.toFixed(4)}</small>`;
+                }
+            },
+            (error) => {
+                status.className = 'location-status location-error';
+                if (error.code === 1) {
+                    status.innerHTML = '<i class="bi bi-x-circle"></i> Permission denied<br><small>Please allow location access</small>';
+                } else if (error.code === 2) {
+                    status.innerHTML = '<i class="bi bi-x-circle"></i> Location unavailable<br><small>Check GPS settings</small>';
+                } else {
+                    status.innerHTML = '<i class="bi bi-x-circle"></i> Timeout<br><small>Try again</small>';
+                }
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
     }
 
-    // ==========================================
-    // 2. DATABASE CONNECTION CHECK
-    // ==========================================
-    async function checkDatabaseConnection() {
-      const icon = document.getElementById("dbIcon");
-      const text = document.getElementById("dbText");
-
-      if (!supabaseClient) {
-        icon.className = "bi bi-circle-fill text-danger";
-        text.textContent = "Database: Disconnected (Keys Missing)";
-        return;
-      }
-
-      try {
-        const { error } = await supabaseClient
-          .from("service_reports")
-          .select("id")
-          .limit(1);
-
-        if (error) {
-          throw error;
-        } else {
-          icon.className = "bi bi-circle-fill text-success";
-          text.textContent = "Database: Connected";
-        }
-      } catch (err) {
-        icon.className = "bi bi-circle-fill text-danger";
-        text.textContent = "Database: Disconnected";
-        console.error("DB Check Failed:", err.message);
-      }
-    }
-
-    // ==========================================
-    // 3. UI & LOGIC
-    // ==========================================
-    
-    function initializeSignaturePads() {
-      const customerCanvas = document.getElementById('customerSignature');
-      const technicianCanvas = document.getElementById('technicianSignature');
-      
-      if(customerCanvas && technicianCanvas) {
-         customerSignaturePad = new SignaturePad(customerCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
-         technicianSignaturePad = new SignaturePad(technicianCanvas, { backgroundColor: 'rgba(255, 255, 255, 0)', penColor: 'rgb(0, 0, 0)' });
-         resizeSignaturePads();
-      }
-    }
-
-    function resizeSignaturePads() {
-      const canvases = document.querySelectorAll('.signature-pad');
-      canvases.forEach(canvas => {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext('2d').scale(ratio, ratio);
-      });
-    }
-
-    function clearSignature(type) {
-      if (type === 'customer') customerSignaturePad.clear();
-      else technicianSignaturePad.clear();
-    }
-
-    function showStatus(message, type = 'success') {
-      const statusElement = document.getElementById('statusMessage');
-      statusElement.textContent = message;
-      statusElement.className = `alert alert-${type} alert-custom`;
-      statusElement.style.display = 'block';
-      setTimeout(() => { statusElement.style.display = 'none'; }, 5000);
-    }
-
-    const techSelect = document.getElementById('technicianName');
-    if(techSelect) {
-        techSelect.addEventListener('change', function() {
-          const otherInput = document.getElementById('technicianNameOther');
-          if (this.value === 'Other') {
-            otherInput.style.display = 'block';
-            otherInput.required = true;
-          } else {
-            otherInput.style.display = 'none';
-            otherInput.required = false;
-            otherInput.value = '';
-          }
+    function initSignatures() {
+        ['sig1', 'sig2', 'sig3'].forEach(id => {
+            const canvas = document.getElementById(id);
+            if(canvas) {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                pads[id] = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,1)' });
+            }
         });
     }
 
-    // ==========================================
-    // 4. SAVE TO DATABASE FUNCTION
-    // ==========================================
-    async function saveToDatabase(data) {
-        if (!supabaseClient) {
-            console.warn("Skipping DB save: No client");
-            return { error: "Database not configured" };
+    function clearSig(id) {
+        if(pads[id]) pads[id].clear();
+    }
+
+    function addEntry() {
+        entryCount++;
+        const div = document.createElement('div');
+        div.className = 'entry-item';
+        div.innerHTML = `
+            <div class="entry-header">
+                <span class="entry-number">${entryCount}</span>
+                <button type="button" class="delete-btn" onclick="this.closest('.entry-item').remove(); calculate();">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Onsite Location</label>
+                <input type="text" class="form-control">
+            </div>
+            <div class="row-2col">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">OT Hours (Auto)</label>
+                    <input type="number" class="form-control ot-hours" readonly step="0.5" min="0" value="0">
+                </div>
+            </div>
+            <div class="row-2col">
+                <div class="form-group">
+                    <label class="form-label">In Time</label>
+                    <input type="time" class="form-control in-time" oninput="calculateOT(this)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Out Time</label>
+                    <input type="time" class="form-control out-time" oninput="calculateOT(this)">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Meals (Rs)</label>
+                <div class="row-2col">
+                    <input type="number" class="form-control meal-input" placeholder="Breakfast" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input" placeholder="Lunch" oninput="calculate()" min="0">
+                </div>
+                <div class="row-2col" style="margin-top:8px;">
+                    <input type="number" class="form-control meal-input" placeholder="Tea" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input" placeholder="Dinner" oninput="calculate()" min="0">
+                </div>
+            </div>
+        `;
+        document.getElementById('entriesContainer').appendChild(div);
+    }
+
+    function calculateOT(element) {
+        const entryItem = element.closest('.entry-item');
+        const inTime = entryItem.querySelector('.in-time').value;
+        const outTime = entryItem.querySelector('.out-time').value;
+        const otInput = entryItem.querySelector('.ot-hours');
+
+        if (inTime && outTime) {
+            const [inH, inM] = inTime.split(':').map(Number);
+            const [outH, outM] = outTime.split(':').map(Number);
+            
+            let diff = (outH * 60 + outM) - (inH * 60 + inM);
+            
+            // Handle overnight shifts
+            if (diff < 0) diff += 24 * 60;
+            
+            const hours = diff / 60;
+            otInput.value = hours.toFixed(1);
+        } else {
+            otInput.value = 0;
+        }
+        calculate();
+    }
+
+    function addAcc() {
+        const div = document.createElement('div');
+        div.className = 'entry-item';
+        div.innerHTML = `
+            <div class="entry-header">
+                <span class="entry-number"><i class="bi bi-house"></i></span>
+                <button type="button" class="delete-btn" onclick="this.closest('.entry-item').remove(); calculate();">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            <div class="row-2col">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount (Rs)</label>
+                    <input type="number" class="form-control acc-input" oninput="calculate()" min="0">
+                </div>
+            </div>
+        `;
+        document.getElementById('accContainer').appendChild(div);
+    }
+
+    function addFuel() {
+        const div = document.createElement('div');
+        div.className = 'entry-item';
+        div.innerHTML = `
+            <div class="entry-header">
+                <span class="entry-number"><i class="bi bi-fuel-pump"></i></span>
+                <button type="button" class="delete-btn" onclick="this.closest('.entry-item').remove(); calculate();">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            <div class="row-3col">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">KM</label>
+                    <input type="number" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" class="form-control fuel-input" oninput="calculate()" min="0">
+                </div>
+            </div>
+        `;
+        document.getElementById('fuelContainer').appendChild(div);
+    }
+
+    function calculate() {
+        let meals = 0, ot = 0, acc = 0, fuel = 0;
+        document.querySelectorAll('.meal-input').forEach(i => {
+            const val = parseFloat(i.value);
+            if(!isNaN(val)) meals += val;
+        });
+        document.querySelectorAll('.ot-hours').forEach(i => {
+            const val = parseFloat(i.value);
+            if(!isNaN(val)) ot += val;
+        });
+        document.querySelectorAll('.acc-input').forEach(i => {
+            const val = parseFloat(i.value);
+            if(!isNaN(val)) acc += val;
+        });
+        document.querySelectorAll('.fuel-input').forEach(i => {
+            const val = parseFloat(i.value);
+            if(!isNaN(val)) fuel += val;
+        });
+
+        document.getElementById('sumOT').textContent = ot.toFixed(1);
+        document.getElementById('sumMeals').textContent = 'Rs ' + meals.toFixed(2);
+        document.getElementById('sumAccSummary').textContent = 'Rs ' + acc.toFixed(2);
+        document.getElementById('sumFuelSummary').textContent = 'Rs ' + fuel.toFixed(2);
+        
+        const grandTotal = meals + acc + fuel;
+        document.getElementById('grandTotal').textContent = 'Rs ' + grandTotal.toFixed(2);
+    }
+
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://jzjeiytwxtkpyuogphys.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6amVpeXR3eHRrcHl1b2dwaHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4NjA1MTIsImV4cCI6MjA4NDQzNjUxMn0.Zq-dCX5PQAhtkNJNWzJ9BAKoJdAOC0VHEtfis9T5ShM';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // --- Database Connection Check ---
+    async function checkDatabaseConnection() {
+        try {
+            const { data, error } = await supabaseClient.from('claims').select('id').limit(1);
+            if (error) throw error;
+            return { success: true };
+        } catch (err) {
+            return { success: false, message: err.message };
+        }
+    }
+
+    document.getElementById('claimForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+
+        // 1. Check Location
+        const locationVal = document.getElementById('locationData').value;
+        if (!locationVal) {
+            alert("Please capture your location before submitting.");
+            document.querySelector('.location-card').scrollIntoView({ behavior: 'smooth' });
+            return;
         }
 
-        const dbPayload = {
-            job_number: data.jobNumber,
-            job_type: data.jobType,
-            invoice_number: data.invoiceNumber,
-            customer_name: data.customerName,
-            contact_person: data.contactPerson,
-            customer_address: data.customerAddress,
-            contact_number: data.contactNumber,
-            report_date: data.reportDate,
-            ups_brand: data.upsBrand,
-            ups_model: data.upsModel,
-            ups_serial: data.upsSerial,
-            ups_kva: data.upsKVA || null,
-            ups_kw: data.upsKW || null,
-            battery_make_ah: data.batteryMakeAH,
-            battery_type_qty: data.batteryTypeQty,
-            battery_date_set: data.batteryDateSet || null,
-            reference_number: data.referenceNumber,
-            fault_reported: data.faultReported,
-            input_voltage_ln: data.inputVoltageLN || null,
-            input_voltage_le: data.inputVoltageLE || null,
-            input_voltage_ne: data.inputVoltageNE || null,
-            output_voltage_ln: data.outputVoltageLN || null,
-            output_voltage_le: data.outputVoltageLE || null,
-            output_voltage_ne: data.outputVoltageNE || null,
-            load_percentage: data.loadPercentage || null,
-            load_amperage: data.loadAmperage || null,
-            charging_current: data.chargingCurrent || null,
-            check_vip: data.checkVIP,
-            check_smd: data.checkSMD,
-            check_ut: data.checkUT,
-            testing_conditions: data.testingConditions,
-            test_equip_model: data.testEquipmentModel,
-            test_equip_serial: data.testEquipmentSerial,
-            tech_remarks: data.techRemarks,
-            technician_name: data.technicianName,
-            driver_name: data.driverName,
-            vehicle_number: data.vehicleNumber,
-            time_in: data.timeIn || null,
-            time_out: data.timeOut || null,
-            customer_remarks: data.customerRemarks,
-            customer_signature: data.customerSignature,
-            technician_signature: data.technicianSignature
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Connecting to Database...';
+        btn.disabled = true;
+
+        // 2. PRE-CHECK: Database Connection
+        const connectionCheck = await checkDatabaseConnection();
+        if (!connectionCheck.success) {
+            alert("DATABASE NOT CONNECTED: Download blocked. Please check your internet or database status.\nError: " + connectionCheck.message);
+            btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Connection Failed';
+            btn.disabled = false;
+            return; // STRICT BLOCK: NO DOWNLOAD
+        }
+
+        // --- NEW: Gather In/Out Times from the first entry (assuming single record per claim) ---
+        const firstEntry = document.querySelector('.entry-item');
+        const inTimeVal = firstEntry ? firstEntry.querySelector('.in-time').value : null;
+        const outTimeVal = firstEntry ? firstEntry.querySelector('.out-time').value : null;
+
+        // Gather data
+        const claimData = {
+            applicant_name: document.getElementById('applicantName').value,
+            app_date: document.getElementById('appDate').value,
+            dept: document.getElementById('dept').value,
+            epf_no: document.getElementById('epfNo').value,
+            customer_name: document.getElementById('customerName').value,
+            location: locationVal,
+            total_ot_hours: parseFloat(document.getElementById('sumOT').textContent) || 0,
+            total_meals: parseFloat(document.getElementById('sumMeals').textContent.replace('Rs ', '')) || 0,
+            total_accommodation: parseFloat(document.getElementById('sumAccSummary').textContent.replace('Rs ', '')) || 0,
+            total_fuel: parseFloat(document.getElementById('sumFuelSummary').textContent.replace('Rs ', '')) || 0,
+            grand_total: parseFloat(document.getElementById('grandTotal').textContent.replace('Rs ', '')) || 0,
+            signature_applicant: pads['sig1'].isEmpty() ? null : pads['sig1'].toDataURL(),
+            signature_team_leader: pads['sig2'].isEmpty() ? null : pads['sig2'].toDataURL(),
+            signature_approved: pads['sig3'].isEmpty() ? null : pads['sig3'].toDataURL(),
+            // SYNC NEW FIELDS TO DATABASE
+            in_time: inTimeVal,
+            out_time: outTimeVal
         };
 
-        const { data: savedData, error } = await supabaseClient
-            .from('service_reports')
-            .insert([dbPayload])
-            .select();
+        try {
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving to Database...';
+            // 3. Save to Database (MUST SUCCEED)
+            const { data, error } = await supabaseClient
+                .from('claims')
+                .insert([claimData]);
 
-        return { data: savedData, error };
-    }
+            if (error) throw error;
+            
+            // 4. Generate and Download PDF (ONLY IF DB SUCCESS)
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating PDF...';
+            generatePDF();
+            
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> Saved & Downloaded!';
+        } catch (err) {
+            console.error('Database Error:', err.message);
+            alert("DATABASE ERROR: Could not save claim. PDF download blocked.\n\nDetails: " + err.message);
+            btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> DB Error - Try Again';
+            btn.disabled = false;
+            return; // STRICT BLOCK: NO DOWNLOAD
+        }
 
-    // ==========================================
-    // 5. FORM SUBMISSION
-    // ==========================================
-    const form = document.getElementById('serviceForm');
-    if(form) {
-        form.addEventListener('submit', async function(e) {
-          e.preventDefault();
-          
-          const btn = document.getElementById('generateBtn');
-          const originalBtnText = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-
-          // Collect Data
-          const formData = {
-            jobNumber: document.getElementById('jobNumber').value,
-            jobType: document.getElementById('jobType').value,
-            invoiceNumber: document.getElementById('invoiceNumber').value,
-            customerName: document.getElementById('customerName').value,
-            customerAddress: document.getElementById('customerAddress').value,
-            contactPerson: document.getElementById('contactPerson').value,
-            contactNumber: document.getElementById('contactNumber').value,
-            reportDate: document.getElementById('reportDate').value,
-            upsBrand: document.getElementById('upsBrand').value,
-            upsModel: document.getElementById('upsModel').value,
-            upsSerial: document.getElementById('upsSerial').value,
-            upsKVA: document.getElementById('upsKVA').value,
-            upsKW: document.getElementById('upsKW').value,
-            batteryMakeAH: document.getElementById('batteryMakeAH').value,
-            batteryTypeQty: document.getElementById('batteryTypeQty').value,
-            batteryDateSet: document.getElementById('batteryDateSet').value,
-            referenceNumber: document.getElementById('referenceNumber').value,
-            faultReported: document.getElementById('faultReported').value,
-            inputVoltageLN: document.getElementById('inputVoltageLN').value,
-            inputVoltageLE: document.getElementById('inputVoltageLE').value,
-            inputVoltageNE: document.getElementById('inputVoltageNE').value,
-            outputVoltageLN: document.getElementById('outputVoltageLN').value,
-            outputVoltageLE: document.getElementById('outputVoltageLE').value,
-            outputVoltageNE: document.getElementById('outputVoltageNE').value,
-            loadPercentage: document.getElementById('loadPercentage').value,
-            loadAmperage: document.getElementById('loadAmperage').value,
-            chargingCurrent: document.getElementById('chargingCurrent').value,
-            checkVIP: document.getElementById('checkVIP').checked,
-            checkSMD: document.getElementById('checkSMD').checked,
-            checkUT: document.getElementById('checkUT').checked,
-            testingConditions: document.getElementById('testingConditions').value,
-            testEquipmentModel: document.getElementById('testEquipmentModel').value,
-            testEquipmentSerial: document.getElementById('testEquipmentSerial').value,
-            techRemarks: document.getElementById('techRemarks').value,
-            technicianName: document.getElementById('technicianName').value === 'Other' ? 
-                            document.getElementById('technicianNameOther').value : 
-                            document.getElementById('technicianName').value,
-            driverName: document.getElementById('driverName').value,
-            vehicleNumber: document.getElementById('vehicleNumber').value,
-            timeIn: document.getElementById('timeIn').value,
-            timeOut: document.getElementById('timeOut').value,
-            customerRemarks: document.getElementById('customerRemarks').value,
-            customerSignature: (customerSignaturePad && !customerSignaturePad.isEmpty()) ? customerSignaturePad.toDataURL() : null,
-            technicianSignature: (technicianSignaturePad && !technicianSignaturePad.isEmpty()) ? technicianSignaturePad.toDataURL() : null
-          };
-
-          currentReportData = formData;
-
-          // Attempt to save to DB
-          try {
-             const result = await saveToDatabase(formData);
-             if(result.error) {
-                 console.error("DB Error:", result.error);
-                 showStatus('Generated PDF, but failed to save to database: ' + result.error.message, 'warning');
-             } else {
-                 showStatus('Report saved to database successfully!', 'success');
-             }
-          } catch(err) {
-             console.error("Save failed:", err);
-             showStatus('Error saving to database.', 'danger');
-          }
-
-          generatePreview();
-          btn.disabled = false;
-          btn.innerHTML = originalBtnText;
-        });
-    }
-
-    function generatePreview() {
-      const data = currentReportData;
-      const previewContent = document.getElementById('previewContent');
-      if(!previewContent) return;
-      
-      let componentChecks = [];
-      if (data.checkVIP) componentChecks.push('VIP');
-      if (data.checkSMD) componentChecks.push('SMD');
-      if (data.checkUT) componentChecks.push('UT');
-      
-      previewContent.innerHTML = `
-        <div class="row">
-          <div class="col-md-6">
-            <h5>Job Information</h5>
-            <p><strong>Job Number:</strong> ${data.jobNumber}</p>
-            <p><strong>Job Type:</strong> ${data.jobType}</p>
-            <p><strong>Invoice Number:</strong> ${data.invoiceNumber}</p>
-            <p><strong>Report Date:</strong> ${data.reportDate}</p>
-            <h5 class="mt-3">Customer Information</h5>
-            <p><strong>Customer:</strong> ${data.customerName}</p>
-            <p><strong>Contact Person:</strong> ${data.contactPerson}</p>
-            <p><strong>Contact Number:</strong> ${data.contactNumber}</p>
-            <p><strong>Address:</strong> ${data.customerAddress}</p>
-          </div>
-          <div class="col-md-6">
-            <h5>UPS Details</h5>
-            <p><strong>Brand:</strong> ${data.upsBrand || 'N/A'}</p>
-            <p><strong>Model:</strong> ${data.upsModel || 'N/A'}</p>
-            <p><strong>Serial:</strong> ${data.upsSerial || 'N/A'}</p>
-            <p><strong>KVA Rating:</strong> ${data.upsKVA || 'N/A'}</p>
-            <p><strong>kW Rating:</strong> ${data.upsKW || 'N/A'}</p>
-            <h5 class="mt-3">Service Details</h5>
-            <p><strong>Technician:</strong> ${data.technicianName}</p>
-            <p><strong>Time:</strong> ${data.timeIn || 'N/A'} - ${data.timeOut || 'N/A'}</p>
-            <p><strong>Component Checks:</strong> ${componentChecks.join(', ') || 'None'}</p>
-          </div>
-        </div>
-        <div class="mt-3">
-          <h5>Fault Reported</h5>
-          <p>${data.faultReported}</p>
-        </div>
-        ${data.techRemarks ? `<div class="mt-3"><h5>Technical Remarks</h5><p>${data.techRemarks}</p></div>` : ''}
-        ${data.customerRemarks ? `<div class="mt-3"><h5>Customer Remarks</h5><p>${data.customerRemarks}</p></div>` : ''}
-        
-        <div class="row mt-4">
-           <div class="col-md-6">
-              <h6>Customer Signature:</h6>
-              ${data.customerSignature ? `<img src="${data.customerSignature}" style="max-width:150px; border:1px solid #ccc">` : '<p class="text-muted">Not Signed</p>'}
-           </div>
-           <div class="col-md-6">
-              <h6>Technician Signature:</h6>
-              ${data.technicianSignature ? `<img src="${data.technicianSignature}" style="max-width:150px; border:1px solid #ccc">` : '<p class="text-muted">Not Signed</p>'}
-           </div>
-        </div>
-      `;
-      document.getElementById('reportPreview').style.display = 'block';
-    }
-
-    // ==========================================
-    // 6. PDF GENERATION (UPDATED WITH ALL DATA)
-    // ==========================================
-    async function downloadPDF() {
-      if (!currentReportData) return;
-      if (!window.jspdf) { alert("PDF Library not loaded."); return; }
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const data = currentReportData;
-
-      // Helper for checks
-      const checks = [];
-      if(data.checkVIP) checks.push("VIP");
-      if(data.checkSMD) checks.push("SMD");
-      if(data.checkUT) checks.push("UT");
-      const checkString = checks.length > 0 ? checks.join(", ") : "None";
-
-      // Formatting constants
-      const leftCol = 15;
-      const rightCol = 110;
-      const lineHeight = 7;
-      let y = 20;
-
-      // TITLE
-      doc.setFontSize(18);
-      doc.setTextColor(46, 125, 50); // Green
-      doc.text('Debug Computer Peripherals', 105, y, { align: 'center' });
-      y += 8;
-      doc.setFontSize(12);
-      doc.setTextColor(100);
-      doc.text('Service Report', 105, y, { align: 'center' });
-      y += 12;
-
-      // Draw Line
-      doc.setDrawColor(46, 125, 50);
-      doc.setLineWidth(0.5);
-      doc.line(15, y, 195, y);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-
-      // --- SECTION 1: JOB & CUSTOMER ---
-      doc.setFont(undefined, 'bold');
-      doc.text("Job & Customer Details", leftCol, y);
-      doc.setFont(undefined, 'normal');
-      y += lineHeight;
-
-      doc.text(`Job No: ${data.jobNumber}`, leftCol, y);
-      doc.text(`Date: ${data.reportDate}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Job Type: ${data.jobType}`, leftCol, y);
-      doc.text(`Invoice: ${data.invoiceNumber}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Customer: ${data.customerName}`, leftCol, y);
-      doc.text(`Contact: ${data.contactPerson} (${data.contactNumber})`, rightCol, y);
-      y += lineHeight;
-      
-      // Address might be long, split it
-      const addressLines = doc.splitTextToSize(`Address: ${data.customerAddress}`, 180);
-      doc.text(addressLines, leftCol, y);
-      y += (addressLines.length * lineHeight) + 3;
-
-      // --- SECTION 2: EQUIPMENT DETAILS ---
-      doc.setFont(undefined, 'bold');
-      doc.text("Equipment (UPS & Battery)", leftCol, y);
-      doc.setFont(undefined, 'normal');
-      y += lineHeight;
-
-      doc.text(`UPS: ${data.upsBrand} ${data.upsModel || ''}`, leftCol, y);
-      doc.text(`Serial: ${data.upsSerial || '-'}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Rating: ${data.upsKVA || '-'} KVA / ${data.upsKW || '-'} kW`, leftCol, y);
-      doc.text(`Ref/Prep No: ${data.referenceNumber || '-'}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Battery: ${data.batteryMakeAH || '-'}`, leftCol, y);
-      doc.text(`Type/Qty: ${data.batteryTypeQty || '-'}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Batt Date Set: ${data.batteryDateSet || '-'}`, leftCol, y);
-      y += lineHeight + 3;
-
-      // --- SECTION 3: TECHNICAL READINGS ---
-      doc.setFont(undefined, 'bold');
-      doc.text("Technical Readings", leftCol, y);
-      doc.setFont(undefined, 'normal');
-      y += lineHeight;
-
-      // Header row for table-like structure
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text("Parameter", leftCol, y);
-      doc.text("Input", leftCol + 40, y);
-      doc.text("Output", leftCol + 80, y);
-      doc.text("Others", leftCol + 120, y);
-      y += 5;
-      doc.setTextColor(0);
-      doc.setFontSize(10);
-
-      doc.text("L-N Voltage:", leftCol, y);
-      doc.text(`${data.inputVoltageLN || '-'} V`, leftCol + 40, y);
-      doc.text(`${data.outputVoltageLN || '-'} V`, leftCol + 80, y);
-      doc.text(`Load: ${data.loadPercentage || '-'} %`, leftCol + 120, y);
-      y += 6;
-
-      doc.text("L-E Voltage:", leftCol, y);
-      doc.text(`${data.inputVoltageLE || '-'} V`, leftCol + 40, y);
-      doc.text(`${data.outputVoltageLE || '-'} V`, leftCol + 80, y);
-      doc.text(`Amps: ${data.loadAmperage || '-'} A`, leftCol + 120, y);
-      y += 6;
-
-      doc.text("N-E Voltage:", leftCol, y);
-      doc.text(`${data.inputVoltageNE || '-'} V`, leftCol + 40, y);
-      doc.text(`${data.outputVoltageNE || '-'} V`, leftCol + 80, y);
-      doc.text(`Chg Curr: ${data.chargingCurrent || '-'} A`, leftCol + 120, y);
-      y += lineHeight + 3;
-
-      // --- SECTION 4: CHECKS & LOGISTICS ---
-      doc.setFont(undefined, 'bold');
-      doc.text("Checks, Logistics & Remarks", leftCol, y);
-      doc.setFont(undefined, 'normal');
-      y += lineHeight;
-
-      doc.text(`Checks: ${checkString}`, leftCol, y);
-      doc.text(`Condition: ${data.testingConditions || '-'}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Test Equip: ${data.testEquipmentModel || '-'}`, leftCol, y);
-      doc.text(`Serial: ${data.testEquipmentSerial || '-'}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Technician: ${data.technicianName}`, leftCol, y);
-      doc.text(`Time: ${data.timeIn || '--:--'} to ${data.timeOut || '--:--'}`, rightCol, y);
-      y += lineHeight;
-      doc.text(`Driver: ${data.driverName || '-'}`, leftCol, y);
-      doc.text(`Vehicle: ${data.vehicleNumber || '-'}`, rightCol, y);
-      y += lineHeight + 5;
-
-      // --- REMARKS BLOCKS ---
-      const faultLines = doc.splitTextToSize(`Fault Reported: ${data.faultReported}`, 180);
-      doc.text(faultLines, leftCol, y);
-      y += (faultLines.length * 5) + 3;
-
-      if (data.techRemarks) {
-        const techLines = doc.splitTextToSize(`Tech Remarks: ${data.techRemarks}`, 180);
-        doc.text(techLines, leftCol, y);
-        y += (techLines.length * 5) + 3;
-      }
-
-      if (data.customerRemarks) {
-        const custLines = doc.splitTextToSize(`Customer Remarks: ${data.customerRemarks}`, 180);
-        doc.text(custLines, leftCol, y);
-        y += (custLines.length * 5) + 3;
-      }
-
-      // --- SIGNATURES ---
-      // Ensure we have space at the bottom, else add page
-      if (y > 250) {
-        doc.addPage();
-        y = 20;
-      } else {
-        y += 10;
-      }
-
-      doc.setFontSize(8);
-      doc.setTextColor(100);
-      
-      if(data.customerSignature) {
-          doc.text("Customer Signature", leftCol, y);
-          doc.addImage(data.customerSignature, 'PNG', leftCol, y + 2, 50, 25);
-      }
-      
-      if(data.technicianSignature) {
-          doc.text("Technician Signature", rightCol, y);
-          doc.addImage(data.technicianSignature, 'PNG', rightCol, y + 2, 50, 25);
-      }
-
-      doc.save(`Service_Report_${data.jobNumber}.pdf`);
-    }
-
-    function shareReport() {
-      if (!currentReportData) return;
-      const data = currentReportData;
-      const subject = `Service Report ${data.jobNumber}`;
-      const body = `Job: ${data.jobNumber}\nCustomer: ${data.customerName}\nFault: ${data.faultReported}`;
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    }
-
-    window.addEventListener('load', function() {
-      initializeSignaturePads();
-      const today = new Date().toISOString().split('T')[0];
-      const dateInput = document.getElementById('reportDate');
-      if(dateInput) dateInput.value = today;
-      checkDatabaseConnection();
+        // Reset button after a delay
+        setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-download"></i> Submit & Download PDF';
+            btn.disabled = false;
+        }, 3000);
     });
 
-    window.addEventListener('resize', resizeSignaturePads);
-  </script>
+    function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text("Overtime & Claim Form", 105, 15, null, null, "center");
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        let y = 30;
+        doc.text(`Name: ${document.getElementById('applicantName').value}`, 15, y);
+        doc.text(`Date: ${document.getElementById('appDate').value}`, 150, y);
+        y += 6;
+        doc.text(`Dept: ${document.getElementById('dept').value}`, 15, y);
+        doc.text(`EPF: ${document.getElementById('epfNo').value}`, 70, y);
+        doc.text(`Customer: ${document.getElementById('customerName').value}`, 110, y);
+        y += 6;
+        const loc = document.getElementById('locationData').value || "Not Checked In";
+        doc.text(`Location: ${loc}`, 15, y);
+        y += 10;
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Summary", 15, y);
+        y += 8;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Total OT Hours: ${document.getElementById('sumOT').textContent}`, 15, y);
+        y += 6;
+        doc.text(`Total Meals: ${document.getElementById('sumMeals').textContent}`, 15, y);
+        y += 6;
+        doc.text(`Total Accommodation: ${document.getElementById('sumAccSummary').textContent}`, 15, y);
+        y += 6;
+        doc.text(`Total Fuel: ${document.getElementById('sumFuelSummary').textContent}`, 15, y);
+        y += 8;
+        doc.setFont("helvetica", "bold");
+        doc.text(`GRAND TOTAL: ${document.getElementById('grandTotal').textContent}`, 15, y);
+        y += 20;
+
+        if (!pads['sig1'].isEmpty()) {
+            doc.addImage(pads['sig1'].toDataURL(), 'PNG', 15, y, 50, 30);
+            doc.text("Applicant", 15, y + 35);
+        }
+        if (!pads['sig2'].isEmpty()) {
+            doc.addImage(pads['sig2'].toDataURL(), 'PNG', 80, y, 50, 30);
+            doc.text("Team Leader", 80, y + 35);
+        }
+        if (!pads['sig3'].isEmpty()) {
+            doc.addImage(pads['sig3'].toDataURL(), 'PNG', 145, y, 50, 30);
+            doc.text("Approved", 145, y + 35);
+        }
+        doc.save(`Claim_${document.getElementById('applicantName').value}.pdf`);
+    }
+</script>
+
 </body>
 </html>
-
