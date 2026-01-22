@@ -571,12 +571,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Onsite Location</label>
-                <input type="text" class="form-control">
+                <input type="text" class="form-control onsite-location">
             </div>
             <div class="row-2col">
                 <div class="form-group">
                     <label class="form-label">Date</label>
-                    <input type="date" class="form-control">
+                    <input type="date" class="form-control entry-date">
                 </div>
                 <div class="form-group">
                     <label class="form-label">OT Hours (Auto)</label>
@@ -596,12 +596,12 @@
             <div class="form-group">
                 <label class="form-label">Meals (Rs)</label>
                 <div class="row-2col">
-                    <input type="number" class="form-control meal-input" placeholder="Breakfast" oninput="calculate()" min="0">
-                    <input type="number" class="form-control meal-input" placeholder="Lunch" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input breakfast" placeholder="Breakfast" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input lunch" placeholder="Lunch" oninput="calculate()" min="0">
                 </div>
                 <div class="row-2col" style="margin-top:8px;">
-                    <input type="number" class="form-control meal-input" placeholder="Tea" oninput="calculate()" min="0">
-                    <input type="number" class="form-control meal-input" placeholder="Dinner" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input tea" placeholder="Tea" oninput="calculate()" min="0">
+                    <input type="number" class="form-control meal-input dinner" placeholder="Dinner" oninput="calculate()" min="0">
                 </div>
             </div>
         `;
@@ -644,7 +644,7 @@
             <div class="row-2col">
                 <div class="form-group">
                     <label class="form-label">Date</label>
-                    <input type="date" class="form-control">
+                    <input type="date" class="form-control acc-date">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Amount (Rs)</label>
@@ -668,11 +668,11 @@
             <div class="row-3col">
                 <div class="form-group">
                     <label class="form-label">Date</label>
-                    <input type="date" class="form-control">
+                    <input type="date" class="form-control fuel-date">
                 </div>
                 <div class="form-group">
                     <label class="form-label">KM</label>
-                    <input type="number" class="form-control" min="0">
+                    <input type="number" class="form-control fuel-km" min="0">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Amount</label>
@@ -801,193 +801,209 @@
     });
 
     function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const margin = 15;
-        
-        // --- Header Section ---
-        doc.setFillColor(102, 126, 234); // Primary Color
-        doc.rect(0, 0, pageWidth, 40, 'F');
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.setFont("helvetica", "bold");
-        doc.text("OVERTIME & CLAIM FORM", pageWidth / 2, 20, { align: "center" });
-        
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text("Official Document for Expense Reimbursement", pageWidth / 2, 28, { align: "center" });
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 15;
+            
+            // --- Header Section ---
+            doc.setFillColor(102, 126, 234); // Primary Color
+            doc.rect(0, 0, pageWidth, 40, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("OVERTIME & CLAIM FORM", pageWidth / 2, 20, { align: "center" });
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("Official Document for Expense Reimbursement", pageWidth / 2, 28, { align: "center" });
 
-        // --- Personal Information Section ---
-        let y = 50;
-        doc.setTextColor(40, 40, 40);
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("Personal Information", margin, y);
-        
-        y += 2;
-        doc.setDrawColor(102, 126, 234);
-        doc.setLineWidth(0.5);
-        doc.line(margin, y, pageWidth - margin, y);
-        
-        y += 8;
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text("Applicant Name:", margin, y);
-        doc.setFont("helvetica", "normal");
-        doc.text(document.getElementById('applicantName').value, margin + 35, y);
-        
-        doc.setFont("helvetica", "bold");
-        doc.text("Date:", pageWidth / 2 + 10, y);
-        doc.setFont("helvetica", "normal");
-        doc.text(document.getElementById('appDate').value, pageWidth / 2 + 45, y);
-        
-        y += 6;
-        doc.setFont("helvetica", "bold");
-        doc.text("Department:", margin, y);
-        doc.setFont("helvetica", "normal");
-        doc.text(document.getElementById('dept').value, margin + 35, y);
-        
-        doc.setFont("helvetica", "bold");
-        doc.text("EPF No:", pageWidth / 2 + 10, y);
-        doc.setFont("helvetica", "normal");
-        doc.text(document.getElementById('epfNo').value, pageWidth / 2 + 45, y);
-        
-        y += 6;
-        doc.setFont("helvetica", "bold");
-        doc.text("Customer:", margin, y);
-        doc.setFont("helvetica", "normal");
-        doc.text(document.getElementById('customerName').value, margin + 35, y);
-        
-        y += 6;
-        doc.setFont("helvetica", "bold");
-        doc.text("Location:", margin, y);
-        doc.setFont("helvetica", "normal");
-        const loc = document.getElementById('locationData').value || "Not Captured";
-        const splitLoc = doc.splitTextToSize(loc, pageWidth - margin - 50);
-        doc.text(splitLoc, margin + 35, y);
-        y += (splitLoc.length * 4);
-
-        // --- Overtime Details Table ---
-        y += 5;
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("Overtime & Meals Details", margin, y);
-        
-        const otData = [];
-        document.querySelectorAll('#entriesContainer .entry-item').forEach((item, index) => {
-            const inputs = item.querySelectorAll('input');
-            const meals = item.querySelectorAll('.meal-input');
-            otData.push([
-                index + 1,
-                inputs[1].value, // Date
-                inputs[0].value, // Location
-                item.querySelector('.in-time').value,
-                item.querySelector('.out-time').value,
-                item.querySelector('.ot-hours').value,
-                meals[0].value || '0', // Breakfast
-                meals[1].value || '0', // Lunch
-                meals[2].value || '0', // Tea
-                meals[3].value || '0'  // Dinner
-            ]);
-        });
-
-        doc.autoTable({
-            startY: y + 4,
-            head: [['#', 'Date', 'Location', 'In', 'Out', 'OT', 'Brkfst', 'Lnch', 'Tea', 'Dnnr']],
-            body: otData,
-            theme: 'striped',
-            headStyles: { fillColor: [102, 126, 234], textColor: 255 },
-            styles: { fontSize: 8, cellPadding: 2 },
-            columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 20 }, 2: { cellWidth: 35 } }
-        });
-        
-        y = doc.lastAutoTable.finalY + 10;
-
-        // --- Accommodation & Fuel Section ---
-        const otherData = [];
-        document.querySelectorAll('#accContainer .entry-item').forEach(item => {
-            const inputs = item.querySelectorAll('input');
-            otherData.push([inputs[0].value, 'Accommodation', inputs[1].value]);
-        });
-        document.querySelectorAll('#fuelContainer .entry-item').forEach(item => {
-            const inputs = item.querySelectorAll('input');
-            otherData.push([inputs[0].value, `Fuel (${inputs[1].value} KM)`, inputs[2].value]);
-        });
-
-        if (otherData.length > 0) {
+            // --- Personal Information Section ---
+            let y = 50;
+            doc.setTextColor(40, 40, 40);
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
-            doc.text("Other Expenses", margin, y);
+            doc.text("Personal Information", margin, y);
+            
+            y += 2;
+            doc.setDrawColor(102, 126, 234);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            
+            y += 8;
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("Applicant Name:", margin, y);
+            doc.setFont("helvetica", "normal");
+            doc.text(document.getElementById('applicantName').value || "N/A", margin + 35, y);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("Date:", pageWidth / 2 + 10, y);
+            doc.setFont("helvetica", "normal");
+            doc.text(document.getElementById('appDate').value || "N/A", pageWidth / 2 + 45, y);
+            
+            y += 6;
+            doc.setFont("helvetica", "bold");
+            doc.text("Department:", margin, y);
+            doc.setFont("helvetica", "normal");
+            doc.text(document.getElementById('dept').value || "N/A", margin + 35, y);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("EPF No:", pageWidth / 2 + 10, y);
+            doc.setFont("helvetica", "normal");
+            doc.text(document.getElementById('epfNo').value || "N/A", pageWidth / 2 + 45, y);
+            
+            y += 6;
+            doc.setFont("helvetica", "bold");
+            doc.text("Customer:", margin, y);
+            doc.setFont("helvetica", "normal");
+            doc.text(document.getElementById('customerName').value || "N/A", margin + 35, y);
+            
+            y += 6;
+            doc.setFont("helvetica", "bold");
+            doc.text("Location:", margin, y);
+            doc.setFont("helvetica", "normal");
+            const loc = document.getElementById('locationData').value || "Not Captured";
+            const splitLoc = doc.splitTextToSize(loc, pageWidth - margin - 50);
+            doc.text(splitLoc, margin + 35, y);
+            y += (splitLoc.length * 4);
+
+            // --- Overtime Details Table ---
+            y += 5;
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("Overtime & Meals Details", margin, y);
+            
+            const otData = [];
+            document.querySelectorAll('#entriesContainer .entry-item').forEach((item, index) => {
+                const onsiteLoc = item.querySelector('.onsite-location')?.value || "N/A";
+                const entryDate = item.querySelector('.entry-date')?.value || "N/A";
+                const inTime = item.querySelector('.in-time')?.value || "N/A";
+                const outTime = item.querySelector('.out-time')?.value || "N/A";
+                const otHours = item.querySelector('.ot-hours')?.value || "0";
+                const breakfast = item.querySelector('.breakfast')?.value || "0";
+                const lunch = item.querySelector('.lunch')?.value || "0";
+                const tea = item.querySelector('.tea')?.value || "0";
+                const dinner = item.querySelector('.dinner')?.value || "0";
+                
+                otData.push([
+                    index + 1,
+                    entryDate,
+                    onsiteLoc,
+                    inTime,
+                    outTime,
+                    otHours,
+                    breakfast,
+                    lunch,
+                    tea,
+                    dinner
+                ]);
+            });
+
             doc.autoTable({
                 startY: y + 4,
-                head: [['Date', 'Description', 'Amount (Rs)']],
-                body: otherData,
-                theme: 'grid',
-                headStyles: { fillColor: [118, 75, 162], textColor: 255 },
-                styles: { fontSize: 9 }
+                head: [['#', 'Date', 'Location', 'In', 'Out', 'OT', 'Brkfst', 'Lnch', 'Tea', 'Dnnr']],
+                body: otData,
+                theme: 'striped',
+                headStyles: { fillColor: [102, 126, 234], textColor: 255 },
+                styles: { fontSize: 8, cellPadding: 2 },
+                columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 20 }, 2: { cellWidth: 35 } }
             });
+            
             y = doc.lastAutoTable.finalY + 10;
-        }
 
-        // --- Summary Section ---
-        if (y > 220) { doc.addPage(); y = 20; }
-        
-        doc.setFillColor(245, 245, 245);
-        doc.rect(margin, y, pageWidth - (margin * 2), 35, 'F');
-        
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text("CLAIM SUMMARY", margin + 5, y + 8);
-        
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Total OT Hours: ${document.getElementById('sumOT').textContent}`, margin + 5, y + 16);
-        doc.text(`Total Meals: ${document.getElementById('sumMeals').textContent}`, margin + 5, y + 22);
-        doc.text(`Accommodation: ${document.getElementById('sumAccSummary').textContent}`, pageWidth / 2, y + 16);
-        doc.text(`Fuel & Other: ${document.getElementById('sumFuelSummary').textContent}`, pageWidth / 2, y + 22);
-        
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(102, 126, 234);
-        doc.text(`GRAND TOTAL: ${document.getElementById('grandTotal').textContent}`, margin + 5, y + 30);
-        
-        y += 45;
+            // --- Accommodation & Fuel Section ---
+            const otherData = [];
+            document.querySelectorAll('#accContainer .entry-item').forEach(item => {
+                const date = item.querySelector('.acc-date')?.value || "N/A";
+                const amount = item.querySelector('.acc-input')?.value || "0";
+                otherData.push([date, 'Accommodation', amount]);
+            });
+            document.querySelectorAll('#fuelContainer .entry-item').forEach(item => {
+                const date = item.querySelector('.fuel-date')?.value || "N/A";
+                const km = item.querySelector('.fuel-km')?.value || "0";
+                const amount = item.querySelector('.fuel-input')?.value || "0";
+                otherData.push([date, `Fuel (${km} KM)`, amount]);
+            });
 
-        // --- Signatures Section ---
-        doc.setTextColor(40, 40, 40);
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        
-        const sigWidth = 50;
-        const sigHeight = 25;
-        
-        if (!pads['sig1'].isEmpty()) {
-            doc.addImage(pads['sig1'].toDataURL(), 'PNG', margin, y, sigWidth, sigHeight);
-            doc.line(margin, y + sigHeight, margin + sigWidth, y + sigHeight);
-            doc.text("Applicant Signature", margin, y + sigHeight + 5);
-        }
-        
-        if (!pads['sig2'].isEmpty()) {
-            doc.addImage(pads['sig2'].toDataURL(), 'PNG', pageWidth / 2 - sigWidth / 2, y, sigWidth, sigHeight);
-            doc.line(pageWidth / 2 - sigWidth / 2, y + sigHeight, pageWidth / 2 + sigWidth / 2, y + sigHeight);
-            doc.text("Team Leader", pageWidth / 2 - sigWidth / 2, y + sigHeight + 5);
-        }
-        
-        if (!pads['sig3'].isEmpty()) {
-            doc.addImage(pads['sig3'].toDataURL(), 'PNG', pageWidth - margin - sigWidth, y, sigWidth, sigHeight);
-            doc.line(pageWidth - margin - sigWidth, y + sigHeight, pageWidth - margin, y + sigHeight);
-            doc.text("Approved By", pageWidth - margin - sigWidth, y + sigHeight + 5);
-        }
+            if (otherData.length > 0) {
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text("Other Expenses", margin, y);
+                doc.autoTable({
+                    startY: y + 4,
+                    head: [['Date', 'Description', 'Amount (Rs)']],
+                    body: otherData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [118, 75, 162], textColor: 255 },
+                    styles: { fontSize: 9 }
+                });
+                y = doc.lastAutoTable.finalY + 10;
+            }
 
-        // --- Footer ---
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "italic");
-        doc.setTextColor(150, 150, 150);
-        doc.text(`Generated on: ${new Date().toLocaleString()}`, pageWidth / 2, 285, { align: "center" });
+            // --- Summary Section ---
+            if (y > 220) { doc.addPage(); y = 20; }
+            
+            doc.setFillColor(245, 245, 245);
+            doc.rect(margin, y, pageWidth - (margin * 2), 35, 'F');
+            
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("CLAIM SUMMARY", margin + 5, y + 8);
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Total OT Hours: ${document.getElementById('sumOT').textContent}`, margin + 5, y + 16);
+            doc.text(`Total Meals: ${document.getElementById('sumMeals').textContent}`, margin + 5, y + 22);
+            doc.text(`Accommodation: ${document.getElementById('sumAccSummary').textContent}`, pageWidth / 2, y + 16);
+            doc.text(`Fuel & Other: ${document.getElementById('sumFuelSummary').textContent}`, pageWidth / 2, y + 22);
+            
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(102, 126, 234);
+            doc.text(`GRAND TOTAL: ${document.getElementById('grandTotal').textContent}`, margin + 5, y + 30);
+            
+            y += 45;
 
-        doc.save(`Claim_${document.getElementById('applicantName').value}_${document.getElementById('appDate').value}.pdf`);
+            // --- Signatures Section ---
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            
+            const sigWidth = 50;
+            const sigHeight = 25;
+            
+            if (!pads['sig1'].isEmpty()) {
+                doc.addImage(pads['sig1'].toDataURL(), 'PNG', margin, y, sigWidth, sigHeight);
+                doc.line(margin, y + sigHeight, margin + sigWidth, y + sigHeight);
+                doc.text("Applicant Signature", margin, y + sigHeight + 5);
+            }
+            
+            if (!pads['sig2'].isEmpty()) {
+                doc.addImage(pads['sig2'].toDataURL(), 'PNG', pageWidth / 2 - sigWidth / 2, y, sigWidth, sigHeight);
+                doc.line(pageWidth / 2 - sigWidth / 2, y + sigHeight, pageWidth / 2 + sigWidth / 2, y + sigHeight);
+                doc.text("Team Leader", pageWidth / 2 - sigWidth / 2, y + sigHeight + 5);
+            }
+            
+            if (!pads['sig3'].isEmpty()) {
+                doc.addImage(pads['sig3'].toDataURL(), 'PNG', pageWidth - margin - sigWidth, y, sigWidth, sigHeight);
+                doc.line(pageWidth - margin - sigWidth, y + sigHeight, pageWidth - margin, y + sigHeight);
+                doc.text("Approved By", pageWidth - margin - sigWidth, y + sigHeight + 5);
+            }
+
+            // --- Footer ---
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, pageWidth / 2, 285, { align: "center" });
+
+            doc.save(`Claim_${document.getElementById('applicantName').value}_${document.getElementById('appDate').value}.pdf`);
+        } catch (pdfError) {
+            console.error("PDF Generation Error:", pdfError);
+            alert("Error generating beautiful PDF. Please check if all fields are filled correctly.\n\nDetails: " + pdfError.message);
+        }
     }
 </script>
 
